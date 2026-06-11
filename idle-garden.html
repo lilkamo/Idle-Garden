@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2d6a4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Idle Garden</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    /* sky / ground — saturated */
+    --sky-top: #8fd0ff;
+    --sky-mid: #ffc6e2;
+    --sky-bottom: #ffb380;
+    --soil-top: #a9744f;
+    --soil-mid: #7d4f33;
+    --soil-deep: #573520;
+    /* greens */
+    --leaf: #40916c;
+    --leaf-deep: #1b6b47;
+    --sage: #74c69d;
+    /* accents */
+    --blush: #ff4d8d;
+    --lavender: #8a5cff;
+    --butter: #ffc83d;
+    --peach: #ff8a4c;
+    --gold: #f2a40c;
+    --terracotta: #e1683c;
+    /* neutrals */
+    --cream: #fcf4e9;
+    --cream-light: #fffaf2;
+    --ink: #36251c;
+    --ink-soft: #5e463a;
+    --muted: #9a8475;
+    --line: #e8d6c1;
+    --line-soft: #f3e6d5;
+    --water-blue: #36bdf0;
+    --water-deep: #1b87bf;
+    --danger: #d83a3a;
+    --good: #1f9d57;
+    /* greenhouse glass */
+    --glass-top: #cdf2e6;
+    --glass-mid: #a7e3cf;
+    --glass-frame: #5aa888;
+    --shadow-sm: 0 1px 3px rgba(70, 40, 25, 0.14);
+    --shadow-md: 0 6px 16px rgba(70, 40, 25, 0.18);
+    --shadow-lg: 0 16px 38px rgba(70, 40, 25, 0.26);
+    --r-sm: 9px; --r-md: 15px; --r-lg: 24px; --r-pill: 999px;
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--ink);
+    background: #1b2a22;
+    user-select: none; -webkit-user-select: none;
+    overscroll-behavior: none;
+    font-size: 15px; line-height: 1.4;
+  }
+
+  #app {
+    width: 100%; max-width: 480px; margin: 0 auto;
+    height: 100vh; height: 100dvh;
+    display: flex; flex-direction: column;
+    background: var(--cream); position: relative; overflow: hidden;
+  }
+
+  /* painted grain */
+  #app::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 40;
+    opacity: 0.4; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  svg { display: block; }
+  .ic { display: inline-block; vertical-align: -0.18em; }
+
+  /* ===== HEADER ===== */
+  header.top {
+    flex: 0 0 auto; padding: env(safe-area-inset-top) 12px 9px;
+    background: linear-gradient(180deg, #2d6a4f 0%, #1b6b47 100%);
+    position: relative; z-index: 6;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  }
+  .title-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 4px 6px; }
+  .title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 21px; letter-spacing: -0.02em; color: #fff; display: flex; align-items: center; gap: 7px; }
+  .title em { font-style: italic; color: var(--butter); font-weight: 500; }
+  .menu-btn {
+    background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: var(--r-pill); width: 34px; height: 34px; display: grid; place-items: center;
+    cursor: pointer; transition: transform 0.1s, background 0.15s; color: #fff;
+  }
+  .menu-btn:active { transform: scale(0.92); background: rgba(255,255,255,0.3); }
+
+  .resources { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+  .res {
+    background: rgba(255,255,255,0.92); border-radius: var(--r-md); padding: 7px 9px;
+    display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-sm);
+  }
+  .res-icon { flex-shrink: 0; width: 22px; height: 22px; }
+  .res-body { flex: 1; min-width: 0; }
+  .res-label { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; line-height: 1; margin-bottom: 2px; }
+  .res-value { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .water-bar { height: 3px; background: rgba(0,0,0,0.10); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .water-fill { height: 100%; background: linear-gradient(90deg, var(--water-blue), var(--water-deep)); transition: width 0.3s ease; border-radius: 2px; }
+
+  /* ===== MAIN ===== */
+  main { flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; position: relative; }
+
+  .grow-view { display: flex; flex-direction: column; min-height: 100%; position: relative; }
+
+  .garden-view {
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 24%, var(--sky-bottom) 35%, var(--soil-top) 36%, var(--soil-mid) 100%);
+  }
+  .garden-view::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 38%; pointer-events: none; filter: blur(3px);
+    background-image:
+      radial-gradient(ellipse 55% 40% at 16% 30%, rgba(255,77,141,0.4) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 45% at 84% 20%, rgba(138,92,255,0.38) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 40% at 55% 62%, rgba(255,255,255,0.55) 0%, transparent 55%);
+  }
+  .greenhouse-view {
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.10) 0 2px, transparent 2px 46px),
+      repeating-linear-gradient(65deg, rgba(90,168,136,0.18) 0 2px, transparent 2px 46px),
+      linear-gradient(180deg, var(--glass-top) 0%, var(--glass-mid) 34%, #b98a63 35%, #8a5e3f 100%);
+  }
+  .greenhouse-view::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 34%; pointer-events: none; filter: blur(2px);
+    background-image: radial-gradient(ellipse 60% 50% at 50% 10%, rgba(255,255,255,0.6) 0%, transparent 60%);
+  }
+  .gh-roof {
+    position: absolute; top: 0; left: 0; right: 0; height: 22px; z-index: 1; pointer-events: none;
+    background: linear-gradient(180deg, var(--glass-frame), transparent);
+    clip-path: polygon(0 100%, 50% 0, 100% 100%);
+    opacity: 0.35;
+  }
+
+  .sun {
+    position: absolute; top: 20px; right: 22px; width: 58px; height: 58px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,247,214,0.98) 0%, rgba(255,206,120,0.7) 52%, transparent 72%);
+    box-shadow: 0 0 54px rgba(255, 190, 110, 0.6); z-index: 0; pointer-events: none;
+  }
+
+  .grow-header { padding: 16px 18px 4px; position: relative; z-index: 2; }
+  .grow-header h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 22px; color: var(--ink); letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+  .garden-view .grow-header h2 { color: #4a2a1c; }
+  .grow-header p { font-family: 'Caveat', cursive; font-size: 19px; color: var(--ink-soft); margin-top: -1px; line-height: 1; }
+
+  .plot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; padding: 8px 13px 12px; position: relative; z-index: 2; }
+
+  .plot {
+    aspect-ratio: 1; border-radius: var(--r-md); position: relative; cursor: pointer; overflow: hidden;
+    transition: transform 0.1s; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, #b07d57 0%, #80522f 100%);
+    border: 1.5px solid rgba(255,255,255,0.22);
+    box-shadow: inset 0 3px 9px rgba(255,255,255,0.16), inset 0 -4px 9px rgba(60,30,15,0.34), var(--shadow-sm);
+  }
+  .greenhouse-view .plot { background: linear-gradient(180deg, #9c6a45 0%, #6e4427 100%); }
+  .plot:active { transform: scale(0.95); }
+  .plot[data-state="locked"] { background: linear-gradient(180deg, #9a8475 0%, #6e5c4f 100%); }
+  .plot[data-state="empty"] .plot-add { position: absolute; width: 30px; height: 30px; opacity: 0.5; }
+
+  .plot.ripe { animation: ripeGlow 1.7s ease-in-out infinite; }
+  @keyframes ripeGlow {
+    0%,100% { box-shadow: inset 0 3px 9px rgba(255,255,255,0.16), inset 0 -4px 9px rgba(60,30,15,0.34), 0 0 0 0 rgba(255,77,141,0), var(--shadow-sm); }
+    50% { box-shadow: inset 0 3px 9px rgba(255,255,255,0.2), inset 0 -4px 9px rgba(60,30,15,0.34), 0 0 22px 5px rgba(255,200,90,0.6), var(--shadow-md); }
+  }
+
+  .plot-art { width: 82%; height: 82%; display: grid; place-items: center; transition: transform 0.35s ease; z-index: 2; filter: drop-shadow(0 3px 3px rgba(50,25,15,0.3)); }
+  .plot-art svg { width: 100%; height: 100%; }
+  .plot.ripe .plot-art { animation: ripeBob 1.7s ease-in-out infinite; }
+  @keyframes ripeBob { 0%,100% { transform: translateY(0) scale(1);} 50% { transform: translateY(-3px) scale(1.05);} }
+
+  .plot-progress { position: absolute; left: 6px; right: 6px; bottom: 5px; height: 4px; background: rgba(40,20,12,0.4); border-radius: 2px; overflow: hidden; z-index: 3; }
+  .plot-progress-fill { height: 100%; background: linear-gradient(90deg, #8fe36a, #5cc24a); border-radius: 2px; transition: width 0.2s linear; }
+  .plot.ripe .plot-progress-fill { background: linear-gradient(90deg, #ffd23f, #ff9e2c); }
+
+  .pot-badge { position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; background: rgba(255,255,255,0.85); border-radius: 6px; z-index: 3; pointer-events: none; box-shadow: 0 1px 2px rgba(60,30,15,0.25); display: grid; place-items: center; padding: 2px; }
+  .pot-badge svg { width: 100%; height: 100%; }
+
+  .plot-locked { display: flex; flex-direction: column; align-items: center; gap: 3px; z-index: 2; color: #f3e3d3; font-family: 'Fraunces', serif; font-weight: 600; font-size: 13px; }
+  .plot-locked svg { width: 22px; height: 22px; opacity: 0.85; }
+
+  .grow-actions { padding: 8px 13px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 9px; position: relative; z-index: 2; }
+  .grow-actions.three { grid-template-columns: 1.4fr 1fr 1fr; }
+  .action-btn {
+    background: var(--cream-light); border: 1.5px solid var(--line); border-radius: var(--r-md);
+    padding: 12px 10px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13.5px; color: var(--ink);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: transform 0.1s; box-shadow: var(--shadow-sm);
+  }
+  .action-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .action-btn:active { transform: scale(0.97); }
+  .action-btn:disabled { opacity: 0.5; }
+  .action-btn.primary { background: var(--leaf-deep); color: #fff; border-color: var(--leaf-deep); }
+  .action-btn.water { background: linear-gradient(180deg, #5cd0f5, var(--water-blue)); color: #06384d; border-color: var(--water-blue); }
+  .seed-chip {
+    display: flex; align-items: center; gap: 6px; background: var(--cream-light); border: 1.5px solid var(--line);
+    border-radius: var(--r-md); padding: 7px 10px; cursor: pointer; box-shadow: var(--shadow-sm);
+  }
+  .seed-chip:active { transform: scale(0.97); }
+  .seed-chip .sc-art { width: 26px; height: 26px; }
+  .seed-chip .sc-name { font-weight: 700; font-size: 13px; }
+  .seed-chip .sc-name small { display: block; font-weight: 600; font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* float effects */
+  .float-pop { position: fixed; pointer-events: none; z-index: 100; font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; color: #b8780e; text-shadow: 0 1px 0 rgba(255,255,255,0.8), 0 2px 5px rgba(70,40,25,0.3); animation: floatUp 1.1s ease-out forwards; display: flex; align-items: center; gap: 3px; }
+  .float-pop svg { width: 15px; height: 15px; }
+  @keyframes floatUp { 0% { transform: translate(-50%,0) scale(0.6); opacity: 0; } 15% { transform: translate(-50%,-8px) scale(1.15); opacity: 1; } 100% { transform: translate(-50%,-72px) scale(1); opacity: 0; } }
+  .water-pop { position: fixed; pointer-events: none; z-index: 100; width: 16px; height: 16px; animation: dropFall 0.8s ease-in forwards; }
+  @keyframes dropFall { 0% { transform: translate(-50%,-10px); opacity: 0;} 20% { opacity: 1;} 100% { transform: translate(-50%,30px); opacity: 0;} }
+
+  /* butterfly */
+  .butterfly { position: absolute; z-index: 5; width: 34px; height: 34px; cursor: pointer; will-change: transform; }
+  .butterfly svg { width: 100%; height: 100%; }
+  .butterfly .wing { transform-origin: center; animation: flap 0.32s ease-in-out infinite alternate; }
+  @keyframes flap { from { transform: scaleX(1);} to { transform: scaleX(0.55);} }
+
+  /* ===== TABS ===== */
+  nav.tabs { flex: 0 0 auto; display: grid; grid-template-columns: repeat(5,1fr); background: var(--cream-light); border-top: 1.5px solid var(--line); padding: 5px 3px calc(5px + env(safe-area-inset-bottom)); gap: 1px; z-index: 6; }
+  .tab-btn { background: transparent; border: none; padding: 7px 2px 5px; border-radius: var(--r-md); display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; color: var(--muted); font-family: inherit; font-size: 10px; font-weight: 600; transition: background 0.15s, color 0.15s; position: relative; }
+  .tab-btn svg { width: 22px; height: 22px; }
+  .tab-btn.active { color: var(--leaf-deep); background: rgba(27,107,71,0.10); }
+  .tab-btn:active { transform: scale(0.95); }
+  .tab-badge { position: absolute; top: 3px; right: calc(50% - 18px); background: var(--blush); color: #fff; font-size: 9px; font-weight: 800; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 8px; display: grid; place-items: center; line-height: 1; }
+
+  /* ===== PANELS ===== */
+  .panel { display: none; min-height: 100%; }
+  .panel.active { display: block; }
+  .panel.sheet { padding: 16px 14px 26px; background: var(--cream); }
+  .panel h2.ph { font-family: 'Fraunces', serif; font-weight: 600; font-size: 23px; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 1px; display: flex; align-items: center; gap: 9px; }
+  .panel h2.ph svg { width: 24px; height: 24px; }
+  .panel-sub { font-family: 'Caveat', cursive; color: var(--ink-soft); font-size: 18px; margin-bottom: 12px; line-height: 1; }
+
+  .section-label { font-family: 'Fraunces', serif; font-size: 12.5px; font-weight: 600; font-style: italic; color: var(--leaf-deep); text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 4px 8px; display: flex; align-items: center; gap: 8px; }
+  .section-label::after { content: ''; flex: 1; height: 1.5px; background: var(--line-soft); }
+
+  .card { background: var(--cream-light); border: 1.5px solid var(--line); border-radius: var(--r-md); padding: 11px 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-sm); }
+  .card-icon { flex-shrink: 0; width: 46px; height: 46px; display: grid; place-items: center; background: rgba(64,145,108,0.12); border-radius: var(--r-md); padding: 6px; }
+  .card-icon svg { width: 100%; height: 100%; }
+  .card-body { flex: 1; min-width: 0; }
+  .card-title { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.2; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .card-title small { font-weight: 500; font-size: 11px; color: var(--muted); }
+  .card-meta { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+  .card-meta b { color: var(--ink-soft); font-weight: 700; }
+
+  .buy-btn { background: var(--ink); color: var(--cream-light); border: none; border-radius: var(--r-pill); padding: 8px 13px; font-family: 'Fraunces', serif; font-weight: 600; font-size: 13px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 4px; transition: transform 0.1s; white-space: nowrap; }
+  .buy-btn svg { width: 13px; height: 13px; }
+  .buy-btn:active { transform: scale(0.95); }
+  .buy-btn:disabled { background: var(--line); color: var(--muted); }
+  .buy-btn.owned { background: var(--good); }
+  .buy-btn.selected { background: var(--terracotta); }
+  .card.locked { opacity: 0.92; }
+  .card.locked .card-icon { filter: grayscale(0.7); opacity: 0.5; }
+  .card.featured { background: linear-gradient(135deg, rgba(242,164,12,0.16), rgba(225,104,60,0.10)); border-color: rgba(242,164,12,0.45); }
+
+  /* build prompt (greenhouse) */
+  .build-prompt { padding: 40px 22px; text-align: center; position: relative; z-index: 2; }
+  .build-prompt .bp-art { width: 120px; height: 120px; margin: 0 auto 12px; }
+  .build-prompt h3 { font-family: 'Fraunces', serif; font-size: 22px; color: var(--ink); margin-bottom: 6px; }
+  .build-prompt p { font-size: 13.5px; color: var(--ink-soft); max-width: 30ch; margin: 0 auto 18px; line-height: 1.5; }
+  .build-btn { background: var(--leaf-deep); color: #fff; border: none; border-radius: var(--r-pill); padding: 13px 24px; font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--shadow-md); }
+  .build-btn svg { width: 18px; height: 18px; }
+  .build-btn:active { transform: scale(0.97); }
+  .build-btn:disabled { background: var(--line); color: var(--muted); }
+
+  /* orders */
+  .order-card { background: var(--cream-light); border: 1.5px solid var(--line); border-radius: var(--r-md); padding: 12px 13px; margin-bottom: 9px; box-shadow: var(--shadow-sm); }
+  .order-top { display: flex; align-items: center; gap: 11px; }
+  .order-art { width: 44px; height: 44px; flex-shrink: 0; background: rgba(255,77,141,0.08); border-radius: var(--r-md); padding: 5px; }
+  .order-info { flex: 1; min-width: 0; }
+  .order-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; line-height: 1.2; }
+  .order-reward { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+  .order-reward b { color: var(--gold); font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
+  .order-reward svg { width: 13px; height: 13px; }
+  .order-prog { margin-top: 10px; }
+  .order-bar { height: 7px; background: rgba(0,0,0,0.08); border-radius: 4px; overflow: hidden; }
+  .order-bar > div { height: 100%; background: linear-gradient(90deg, var(--blush), var(--lavender)); border-radius: 4px; transition: width 0.3s; }
+  .order-prog-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 600; }
+  .order-claim { margin-top: 10px; width: 100%; background: var(--gold); color: #fff; border: none; border-radius: var(--r-md); padding: 10px; font-family: 'Fraunces', serif; font-weight: 600; font-size: 14px; cursor: pointer; }
+  .order-claim:disabled { background: var(--line); color: var(--muted); }
+  .order-claim:active:not(:disabled) { transform: scale(0.98); }
+
+  /* stats */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 12px; }
+  .stat-box { background: var(--cream-light); border: 1.5px solid var(--line); border-radius: var(--r-md); padding: 11px; }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 4px; }
+  .stat-val { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: var(--ink); }
+  .ach-row { background: var(--cream-light); border: 1.5px solid var(--line); border-radius: var(--r-sm); padding: 9px 11px; display: flex; align-items: center; gap: 10px; opacity: 0.5; margin-bottom: 6px; }
+  .ach-row.unlocked { opacity: 1; background: linear-gradient(135deg, rgba(31,157,87,0.10), rgba(116,198,157,0.05)); border-color: rgba(31,157,87,0.25); }
+  .ach-icon { width: 30px; height: 30px; flex-shrink: 0; }
+  .ach-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 14px; line-height: 1.1; }
+  .ach-desc { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+  /* almanac */
+  .almanac-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+  .alm-cell { aspect-ratio: 1; background: var(--cream-light); border: 1.5px solid var(--line); border-radius: var(--r-md); display: grid; place-items: center; padding: 8px; position: relative; }
+  .alm-cell.found { background: linear-gradient(135deg, rgba(255,77,141,0.07), rgba(138,92,255,0.05)); }
+  .alm-cell svg { width: 100%; height: 100%; }
+  .alm-cell.unfound svg { opacity: 0.18; filter: grayscale(1); }
+  .alm-name { position: absolute; bottom: 3px; left: 0; right: 0; text-align: center; font-size: 8.5px; font-weight: 700; color: var(--ink-soft); }
+
+  /* seed picker grid */
+  .seed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
+  .seed-cell { background: var(--cream); border: 1.5px solid var(--line); border-radius: var(--r-md); padding: 9px 5px 7px; text-align: center; cursor: pointer; transition: transform 0.1s; }
+  .seed-cell:active { transform: scale(0.95); }
+  .seed-cell.locked { opacity: 0.45; }
+  .seed-cell.selected { background: var(--leaf-deep); border-color: var(--leaf-deep); }
+  .seed-cell.selected .sc-nm, .seed-cell.selected .sc-yl { color: #fff; }
+  .seed-cell .sc-im { width: 42px; height: 42px; margin: 0 auto 3px; }
+  .sc-nm { font-size: 11px; font-weight: 700; line-height: 1.05; color: var(--ink); }
+  .sc-yl { font-size: 9.5px; color: var(--muted); margin-top: 2px; }
+
+  /* ===== MODAL ===== */
+  .modal-bg { position: fixed; inset: 0; background: rgba(40,25,18,0.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 50; display: none; align-items: center; justify-content: center; padding: 18px; animation: fadeIn 0.2s ease; }
+  .modal-bg.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0;} to { opacity: 1;} }
+  @keyframes slideUp { from { transform: translateY(22px); opacity: 0;} to { transform: translateY(0); opacity: 1;} }
+  .modal { background: var(--cream-light); border-radius: var(--r-lg); max-width: 370px; width: 100%; max-height: 82vh; overflow-y: auto; padding: 22px 20px; box-shadow: var(--shadow-lg); animation: slideUp 0.25s ease; position: relative; }
+  .modal-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 22px; color: var(--ink); margin-bottom: 3px; letter-spacing: -0.01em; }
+  .modal-sub { font-family: 'Caveat', cursive; color: var(--ink-soft); font-size: 18px; line-height: 1; margin-bottom: 13px; }
+  .modal p { font-size: 14px; color: var(--ink-soft); margin-bottom: 10px; }
+  .modal ul { padding-left: 18px; font-size: 13px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 10px; }
+  .modal-close { position: absolute; top: 13px; right: 13px; background: transparent; border: none; font-size: 22px; color: var(--muted); cursor: pointer; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; }
+  .modal-close:active { background: rgba(0,0,0,0.06); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .modal-actions button { flex: 1; padding: 12px; border-radius: var(--r-md); border: 1.5px solid var(--line); background: var(--cream); font-family: 'Fraunces', serif; font-weight: 600; font-size: 14px; color: var(--ink); cursor: pointer; }
+  .modal-actions button.primary { background: var(--leaf-deep); color: #fff; border-color: var(--leaf-deep); }
+  .modal-actions button.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .modal-actions button:active { transform: scale(0.97); }
+  .pot-options { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .pot-option { display: flex; align-items: center; gap: 10px; padding: 9px 11px; background: var(--cream); border: 1.5px solid var(--line); border-radius: var(--r-md); cursor: pointer; }
+  .pot-option:active { background: var(--line-soft); }
+  .pot-option.current { border-color: var(--good); background: rgba(31,157,87,0.07); }
+  .pot-option.locked { opacity: 0.5; }
+  .pot-emoji { width: 30px; height: 30px; flex-shrink: 0; }
+  .pot-body { flex: 1; }
+  .pot-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 14px; line-height: 1.1; }
+  .pot-perks { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .pot-cost { font-family: 'Fraunces', serif; font-weight: 600; font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 3px; }
+  .pot-cost svg { width: 12px; height: 12px; }
+
+  /* ===== TOAST ===== */
+  .toast-stack { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 200; pointer-events: none; width: 90%; max-width: 360px; }
+  .toast { background: var(--ink); color: var(--cream-light); padding: 10px 15px; border-radius: var(--r-pill); font-size: 13px; font-weight: 600; box-shadow: var(--shadow-md); animation: toastIn 0.3s ease, toastOut 0.4s ease 2.6s forwards; display: flex; align-items: center; gap: 8px; }
+  .toast svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .toast.good { background: var(--good); }
+  .toast.gold { background: var(--gold); color: #fff; }
+  @keyframes toastIn { from { transform: translateY(-20px); opacity: 0;} to { transform: translateY(0); opacity: 1;} }
+  @keyframes toastOut { to { transform: translateY(-20px); opacity: 0;} }
+
+  .empty-state { text-align: center; padding: 28px 14px; color: var(--muted); font-size: 13px; }
+  .empty-state h3 { font-family: 'Fraunces', serif; font-style: italic; color: var(--ink-soft); margin-bottom: 6px; font-size: 17px; font-weight: 500; }
+  .small { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="title-row">
+      <div class="title" id="appTitle"></div>
+      <button class="menu-btn" id="menuBtn" title="Menu"></button>
+    </div>
+    <div class="resources">
+      <div class="res"><div class="res-icon" id="icCoin"></div><div class="res-body"><div class="res-label">Coins</div><div class="res-value" id="resCoins">0</div></div></div>
+      <div class="res"><div class="res-icon" id="icWater"></div><div class="res-body"><div class="res-label">Water</div><div class="res-value" id="resWater">0/0</div><div class="water-bar"><div class="water-fill" id="waterFill" style="width:0%"></div></div></div></div>
+      <div class="res"><div class="res-icon" id="icCompost"></div><div class="res-body"><div class="res-label">Compost</div><div class="res-value" id="resCompost">0</div></div></div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- GARDEN -->
+    <div class="panel active" id="panel-garden">
+      <div class="grow-view garden-view">
+        <div class="sun"></div>
+        <div class="grow-header"><h2 id="gardenH"></h2><p id="gardenSub">tap a flower to water it · tap when it blooms to gather</p></div>
+        <div class="plot-grid" id="gardenGrid"></div>
+        <div class="grow-actions three">
+          <div class="seed-chip" id="gardenChip"></div>
+          <button class="action-btn primary" id="gardenPlant"></button>
+          <button class="action-btn water" id="gardenWater"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GREENHOUSE -->
+    <div class="panel" id="panel-greenhouse">
+      <div class="grow-view greenhouse-view" id="ghView">
+        <div class="gh-roof"></div>
+        <div id="ghContent"></div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="panel sheet" id="panel-orders">
+      <h2 class="ph" id="ordersH"></h2>
+      <div class="panel-sub">fill flower &amp; veg orders for bonus coins</div>
+      <div id="ordersContent"></div>
+    </div>
+
+    <!-- SHOP -->
+    <div class="panel sheet" id="panel-shop">
+      <h2 class="ph" id="shopH"></h2>
+      <div class="panel-sub">beds, tools, helpers &amp; upgrades</div>
+      <div id="shopContent"></div>
+    </div>
+
+    <!-- JOURNAL -->
+    <div class="panel sheet" id="panel-journal">
+      <h2 class="ph" id="journalH"></h2>
+      <div class="panel-sub">your patch in numbers</div>
+      <div id="journalContent"></div>
+    </div>
+  </main>
+
+  <nav class="tabs" id="tabs"></nav>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<div class="toast-stack" id="toastStack"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   ICON SET — hand-built SVG, no emoji anywhere
+   ============================================================ */
+const ICON_INNER = {
+  menu: '<g fill="currentColor"><circle cx="6" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="18" cy="12" r="1.9"/></g>',
+  coin: '<circle cx="12" cy="12" r="9" fill="#f2a40c"/><circle cx="12" cy="12" r="9" fill="none" stroke="#b8780e" stroke-width="1.5"/><circle cx="12" cy="12" r="5.6" fill="#ffce5c"/><path d="M12 8.4l1.1 2.2 2.4.3-1.7 1.7.4 2.4-2.2-1.1-2.2 1.1.4-2.4-1.7-1.7 2.4-.3z" fill="#b8780e"/>',
+  water: '<path d="M12 3c3 4 5.5 6.6 5.5 9.6a5.5 5.5 0 0 1-11 0C6.5 9.6 9 7 12 3z" fill="#36bdf0"/><path d="M9.4 12.6a2.6 3 0 0 0 1.6 2.7" stroke="#cdeffd" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
+  compost: '<path d="M3 18.5c2.2-3.2 5.2-4.5 9-4.5s6.8 1.3 9 4.5z" fill="#7d4f33"/><path d="M5 18.5c1.6-2.2 4.2-3.2 7-3.2s5.4 1 7 3.2z" fill="#a9744f"/><path d="M12 14.2c-1.1-3.2.4-5.4 2.1-6.4-.3 2.1-.2 3.2.6 4.2.9-2.1 2.7-2.8 3.8-2.8-1.1 1.5-1.1 3.2-2.6 4.3z" fill="#40916c"/>',
+  leaf: '<path d="M5 19C5 11 11 5 19 5c0 8-6 14-14 14z" fill="#40916c"/><path d="M5 19C9 15 13 11 17 8" stroke="#1b6b47" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
+  flower: '<g fill="#ff4d8d"><ellipse cx="12" cy="5.4" rx="2.4" ry="3.7"/><ellipse cx="12" cy="18.6" rx="2.4" ry="3.7"/><ellipse cx="5.4" cy="12" rx="3.7" ry="2.4"/><ellipse cx="18.6" cy="12" rx="3.7" ry="2.4"/><ellipse cx="7.4" cy="7.4" rx="3.3" ry="2.2" transform="rotate(45 7.4 7.4)"/><ellipse cx="16.6" cy="16.6" rx="3.3" ry="2.2" transform="rotate(45 16.6 16.6)"/><ellipse cx="16.6" cy="7.4" rx="3.3" ry="2.2" transform="rotate(-45 16.6 7.4)"/><ellipse cx="7.4" cy="16.6" rx="3.3" ry="2.2" transform="rotate(-45 7.4 16.6)"/></g><circle cx="12" cy="12" r="3.3" fill="#ffc83d"/>',
+  greenhouse: '<path d="M4 11l8-6 8 6v9.5H4z" fill="#a7e3cf" stroke="#1b6b47" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 5.2v15.3M4 11h16M4 15h16M8 8.6v11.9M16 8.6v11.9" stroke="#1b6b47" stroke-width="0.9"/>',
+  seed: '<rect x="6" y="3.5" width="12" height="17" rx="2" fill="#ffc83d" stroke="#b8780e" stroke-width="1.3"/><path d="M7.5 6h9" stroke="#b8780e" stroke-width="1"/><circle cx="12" cy="12.5" r="3.2" fill="#ff4d8d"/><path d="M12 12.5c0-2 1.6-2.6 1.6-2.6M12 12.5c0-2-1.6-2.6-1.6-2.6" stroke="#1f9d57" stroke-width="1.2" fill="none"/>',
+  cart: '<path d="M3 4h2.2l2.4 11h9.2l2-7.4H7" fill="none" stroke="#36251c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.2" cy="19" r="1.7" fill="#36251c"/><circle cx="16.8" cy="19" r="1.7" fill="#36251c"/>',
+  orders: '<rect x="5" y="4" width="14" height="17" rx="2" fill="#fffaf2" stroke="#36251c" stroke-width="1.4"/><rect x="9" y="2.5" width="6" height="3.6" rx="1.3" fill="#ff4d8d"/><path d="M8 11h8M8 14h8M8 17h5" stroke="#9a8475" stroke-width="1.5" stroke-linecap="round"/>',
+  book: '<path d="M4 5a2 2 0 0 1 2-2h6v18H6a2 2 0 0 1-2-2z" fill="#1f9d57"/><path d="M20 5a2 2 0 0 0-2-2h-6v18h6a2 2 0 0 0 2-2z" fill="#74c69d"/><path d="M7.5 7.5h2.5M7.5 10.5h2.5M14 7.5h2.5M14 10.5h2.5" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>',
+  lock: '<rect x="5" y="10" width="14" height="10" rx="2.2" fill="#f3e3d3"/><path d="M8 10V7.6a4 4 0 0 1 8 0V10" fill="none" stroke="#f3e3d3" stroke-width="1.9"/><circle cx="12" cy="14.6" r="1.7" fill="#80522f"/>',
+  plus: '<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>',
+  check: '<path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  bed: '<rect x="3" y="9" width="18" height="11" rx="2" fill="#a9744f" stroke="#7d4f33" stroke-width="1.3"/><path d="M6 13h12M6 16.2h12" stroke="#7d4f33" stroke-width="1" opacity="0.55"/><path d="M8 9V6.5M12 9V6M16 9V6.5" stroke="#40916c" stroke-width="1.6" stroke-linecap="round"/>',
+  pot_wood: '<rect x="4" y="6.5" width="16" height="3.2" rx="1.2" fill="#7d4f33"/><path d="M5.5 9.7h13l-1.4 9.3a2 2 0 0 1-2 1.7H8.9a2 2 0 0 1-2-1.7z" fill="#a9744f" stroke="#7d4f33" stroke-width="1.1"/><path d="M9.5 10.5v9.5M12 10.5v9.5M14.5 10.5v9.5" stroke="#7d4f33" stroke-width="0.8" opacity="0.6"/>',
+  pot_clay: '<rect x="4" y="6.4" width="16" height="3.2" rx="1.5" fill="#c9542c"/><path d="M5.4 9.6h13.2l-1.5 9.6a2 2 0 0 1-2 1.7H8.9a2 2 0 0 1-2-1.7z" fill="#e1683c" stroke="#b04420" stroke-width="1.1"/>',
+  pot_ceramic: '<rect x="4" y="6.4" width="16" height="3.2" rx="1.5" fill="#7bc4e0"/><path d="M5.4 9.6h13.2l-1.5 9.6a2 2 0 0 1-2 1.7H8.9a2 2 0 0 1-2-1.7z" fill="#cdeffd" stroke="#5aa888" stroke-width="1.1"/><path d="M7.4 13.5h9.2" stroke="#5aa888" stroke-width="1.2"/>',
+  pot_crystal: '<path d="M12 3.6l7.4 5.2L12 20.4 4.6 8.8z" fill="#8a5cff" stroke="#5a2eb8" stroke-width="1.2" stroke-linejoin="round"/><path d="M4.6 8.8h14.8M12 3.6v16.8M8 6.2l4 14M16 6.2l-4 14" stroke="#c9b3ff" stroke-width="0.9" opacity="0.8"/>',
+  pot_magic: '<path d="M6 9.4h12l-1.5 9.8a2 2 0 0 1-2 1.7H9.5a2 2 0 0 1-2-1.7z" fill="#3a0ca3" stroke="#240873" stroke-width="1.1"/><path d="M7.5 7c1.4-2.2 7.6-2.2 9 0" stroke="#8a5cff" stroke-width="1.5" fill="none"/><circle cx="12" cy="13.5" r="2.6" fill="#ffd23f"/><circle cx="9" cy="12" r="1" fill="#c9b3ff"/><circle cx="15" cy="15" r="0.9" fill="#c9b3ff"/>',
+  sprinkler: '<rect x="10.5" y="11" width="3" height="9.5" rx="1" fill="#7a8896"/><ellipse cx="12" cy="11" rx="5.4" ry="2.1" fill="#9aa7b3" stroke="#5e6b78" stroke-width="0.8"/><path d="M7 9c-1.4-2-2.6-2-3.6-1M17 9c1.4-2 2.6-2 3.6-1M9.4 7c-.2-2.2-.9-3.2-2-3.7M14.6 7c.2-2.2.9-3.2 2-3.7M12 6.4V3" stroke="#36bdf0" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
+  gnome: '<path d="M12 3.4l4.4 8.2H7.6z" fill="#d83a3a"/><path d="M8.4 11.6h7.2c0 4.2-1 7-3.6 7s-3.6-2.8-3.6-7z" fill="#ffd9b3"/><path d="M8.8 12.4c.5 4 6 4 6.4 0 .8 2-.2 6.6-3.2 6.6s-4-4.6-3.2-6.6z" fill="#fff"/><circle cx="10.4" cy="13.2" r="0.8" fill="#36251c"/><circle cx="13.6" cy="13.2" r="0.8" fill="#36251c"/><path d="M11 14.4c.6.6 1.4.6 2 0" stroke="#d83a3a" stroke-width="1" fill="none" stroke-linecap="round"/>',
+  robot: '<rect x="6" y="7.5" width="12" height="9.5" rx="2.2" fill="#9aa7b3" stroke="#5e6b78" stroke-width="1.2"/><circle cx="9.6" cy="11.4" r="1.5" fill="#36bdf0"/><circle cx="14.4" cy="11.4" r="1.5" fill="#36bdf0"/><path d="M9.5 14.5h5" stroke="#5e6b78" stroke-width="1.3" stroke-linecap="round"/><path d="M12 7.5V4.6M8.5 17v3M15.5 17v3" stroke="#5e6b78" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="3.8" r="1.3" fill="#ffc83d"/>',
+  bee: '<ellipse cx="8" cy="8.4" rx="3.4" ry="2.2" fill="#cdeffd" opacity="0.85" transform="rotate(-28 8 8.4)"/><ellipse cx="16" cy="8.4" rx="3.4" ry="2.2" fill="#cdeffd" opacity="0.85" transform="rotate(28 16 8.4)"/><ellipse cx="12" cy="13.5" rx="5" ry="6.2" fill="#ffc83d" stroke="#b8780e" stroke-width="0.8"/><path d="M8.4 10.4h7.2M7.6 13.6h8.8M8.4 16.8h7.2" stroke="#36251c" stroke-width="1.7"/>',
+  flask: '<path d="M10 3.4h4v4.8l4.2 8.2a2 2 0 0 1-1.8 3H7.6a2 2 0 0 1-1.8-3L10 8.2z" fill="#a7e3cf" stroke="#1f9d57" stroke-width="1.3"/><path d="M8 15.4h8" stroke="#1f9d57" stroke-width="1.2"/><circle cx="10.8" cy="16.8" r="1" fill="#1f9d57"/><circle cx="13.8" cy="17.6" r="0.8" fill="#1f9d57"/><path d="M9.6 3.4h4.8" stroke="#1f9d57" stroke-width="1.6" stroke-linecap="round"/>',
+  bulb: '<circle cx="12" cy="10" r="5.6" fill="#ffd23f"/><circle cx="12" cy="10" r="5.6" fill="none" stroke="#f2a40c" stroke-width="0.8"/><rect x="9.5" y="14.6" width="5" height="4.2" rx="1.2" fill="#9aa7b3"/><path d="M12 3.4V2.2M5.6 5.6l-.8-.8M18.4 5.6l.8-.8M4.4 11H3.2M20.8 11h-1.2" stroke="#f2a40c" stroke-width="1.4" stroke-linecap="round"/>',
+  heater: '<rect x="6" y="4.6" width="12" height="14.4" rx="2.2" fill="#e1683c" stroke="#b04420" stroke-width="1.2"/><path d="M9 8c-1 1.6 0 2.6 0 4.2s-1 2.6 0 4.2M12 8c-1 1.6 0 2.6 0 4.2s-1 2.6 0 4.2M15 8c-1 1.6 0 2.6 0 4.2s-1 2.6 0 4.2" stroke="#ffd23f" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
+  thumb: '<path d="M4 11.5h3.2v8.5H4z" fill="#c98f5e"/><path d="M7.2 11.5l2.8-6.6a1.8 1.8 0 0 1 2.4 2.2l-1 3.8h5a1.8 1.8 0 0 1 1.8 2.2l-1.4 5.4a2 2 0 0 1-1.9 1.5H7.2z" fill="#ffd9b3" stroke="#c98f5e" stroke-width="1"/><path d="M10.5 6.2c1-1.4 2.6-1.4 2.6-1.4" stroke="#1f9d57" stroke-width="1.3" fill="none" stroke-linecap="round"/>',
+  worm: '<path d="M4.5 16c2 0 2-3.4 4.2-3.4s2.2 3.4 4.4 3.4 2.2-4.4 4.4-4.4 2 2.2 2 2.2" fill="none" stroke="#ff8a9e" stroke-width="3.6" stroke-linecap="round"/><circle cx="19.2" cy="13.6" r="0.9" fill="#36251c"/>',
+  bucket: '<path d="M5 8.4h14l-1.6 11a2 2 0 0 1-2 1.7H8.6a2 2 0 0 1-2-1.7z" fill="#9aa7b3" stroke="#5e6b78" stroke-width="1.2"/><path d="M5.6 8.4a6.4 3 0 0 1 12.8 0" fill="none" stroke="#5e6b78" stroke-width="1.4"/><path d="M9.4 11l1 8M14.6 11l-1 8" stroke="#36bdf0" stroke-width="1.2" opacity="0.55"/>',
+  fountain: '<path d="M5.5 20.5c0-3.2 2.4-4.5 6.5-4.5s6.5 1.3 6.5 4.5z" fill="#36bdf0"/><path d="M12 16.5V8.5M12 8.5c0-2.4-2.4-3.4-2.4-3.4M12 8.5c0-2.4 2.4-3.4 2.4-3.4" stroke="#1b87bf" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="12" cy="5.2" r="1.6" fill="#5cd0f5"/>',
+  arm: '<path d="M4 10c3.2-2.2 6.4-2.2 8.6 0 2.2-1.2 4.4-1 5.4 1.2s.2 5.2-3.2 5.2c1.2 2.2-.2 4.2-3.4 4.2S4 18 4 14z" fill="#ffd9b3" stroke="#c98f5e" stroke-width="1.1"/><path d="M8 12.5c1.6 1.4 1.6 3 0 4.4" stroke="#c98f5e" stroke-width="1" fill="none"/>',
+  crown: '<path d="M4 18.5h16l-1.1-9.6-4.2 4.2L12 6.6l-2.7 6.5-4.2-4.2z" fill="#ffc83d" stroke="#b8780e" stroke-width="1.2" stroke-linejoin="round"/><circle cx="4" cy="8.4" r="1.5" fill="#ff4d8d"/><circle cx="20" cy="8.4" r="1.5" fill="#ff4d8d"/><circle cx="12" cy="6" r="1.5" fill="#8a5cff"/>',
+  medal: '<path d="M8.5 3l3.5 6.5L15.5 3" stroke="#ff4d8d" stroke-width="2.1" fill="none"/><circle cx="12" cy="14.5" r="5.8" fill="#ffc83d" stroke="#b8780e" stroke-width="1.3"/><path d="M12 11.4l1.1 2.2 2.4.3-1.7 1.7.4 2.4-2.2-1.1-2.2 1.1.4-2.4-1.7-1.7 2.4-.3z" fill="#b8780e"/>',
+  sparkle: '<path d="M12 2.5l1.9 6.2 6.4 1.9-6.4 1.9L12 18.7l-1.9-6.2L3.7 10.6l6.4-1.9z" fill="#ffd23f"/>',
+  butterfly: '<path class="wing" d="M12 12.4C9 6 2.6 6.4 3.6 11.6S11 16 12 12.4z" fill="#ff4d8d"/><path class="wing" d="M12 12.4c3-6.4 9.4-6 8.4-.8S13 16 12 12.4z" fill="#8a5cff"/><circle cx="6" cy="9.5" r="1.4" fill="#ffd23f"/><circle cx="18" cy="9.5" r="1.4" fill="#ffd23f"/><path d="M12 6.5v11" stroke="#36251c" stroke-width="1.7" stroke-linecap="round"/><path d="M12 6.5L10 4M12 6.5L14 4" stroke="#36251c" stroke-width="1.2" stroke-linecap="round"/>',
+  build: '<path d="M4 13l8-8 8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20v-6h6v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  veg: '<path d="M11 8.5l-4 11 9.5-7z" fill="#fb8500" stroke="#d96b00" stroke-width="0.9"/><path d="M16 8.5c1-3 3-4 4.4-3.8-1 1.8-1 3-2 4.2M16 8.5c0-3-1-5-1-5 .2 2-1 3-1.2 4.2M16 8.5c2-2 4.4-2 5.6-1-2 1-3.2 1-4.6 2" fill="#1f9d57"/>'
+};
+function ic(name, size){
+  size = size || 22;
+  const inner = ICON_INNER[name] || '';
+  return '<svg class="ic" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>';
+}
+
+/* ============================================================
+   PROCEDURAL PLANT ART — flowers & veg, drawn from parameters
+   ============================================================ */
+function wrap(inner){ return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>'; }
+function petalRing(cx, cy, count, L, W, fill, rot){
+  rot = rot || 0;
+  let s = '';
+  for(let i=0;i<count;i++){
+    const a = (rot + (360/count)*i).toFixed(1);
+    s += '<path d="M'+cx+' '+cy+' Q'+(cx-W)+' '+(cy-L*0.55)+' '+cx+' '+(cy-L)+' Q'+(cx+W)+' '+(cy-L*0.55)+' '+cx+' '+cy+'Z" fill="'+fill+'" transform="rotate('+a+' '+cx+' '+cy+')"/>';
+  }
+  return s;
+}
+function stem(color){
+  color = color || '#2d6a4f';
+  return '<path d="M50 100 Q47 74 50 58" stroke="'+color+'" stroke-width="5.5" fill="none" stroke-linecap="round"/>'
+    + '<path d="M50 82 Q33 75 26 84 Q40 89 50 82Z" fill="#52b788"/>'
+    + '<path d="M50 70 Q67 63 74 72 Q60 77 50 70Z" fill="#40916c"/>';
+}
+function artDaisy(p){
+  const center = p.center || '#ffc83d';
+  const count = p.count || 12, L = p.len || 22, W = p.wid || 7;
+  let s = stem(p.stem);
+  s += petalRing(50,44,count,L,W,p.c2||p.c1);
+  s += petalRing(50,44,count,L*0.86,W*0.7,p.c1,180/count);
+  s += '<circle cx="50" cy="44" r="'+(p.seedCenter?13:10)+'" fill="'+center+'"/>';
+  if(p.seedCenter){
+    for(let i=0;i<10;i++){ const a=i/10*Math.PI*2; s+='<circle cx="'+(50+Math.cos(a)*6).toFixed(1)+'" cy="'+(44+Math.sin(a)*6).toFixed(1)+'" r="1.5" fill="rgba(0,0,0,0.22)"/>'; }
+  }
+  return wrap(s);
+}
+function artLotus(p){
+  const count = p.count || 8;
+  let s = stem(p.stem);
+  s += petalRing(50,46,count,26,9,p.c2||p.c1,180/count);
+  s += petalRing(50,46,count,21,8,p.c1);
+  s += '<circle cx="50" cy="46" r="7" fill="'+(p.center||'#ffd23f')+'"/>';
+  for(let i=0;i<6;i++){ const a=i/6*Math.PI*2; s+='<circle cx="'+(50+Math.cos(a)*4).toFixed(1)+'" cy="'+(46+Math.sin(a)*4).toFixed(1)+'" r="1.2" fill="rgba(0,0,0,0.2)"/>'; }
+  return wrap(s);
+}
+function artRose(p){
+  let s = stem(p.stem||'#1b6b47');
+  s += petalRing(50,46,7,18,12,p.c2||p.c1);
+  s += petalRing(50,45,6,13,10,p.c1,25);
+  s += petalRing(50,45,5,8,8,p.c2||p.c1,50);
+  s += '<circle cx="50" cy="45" r="4.5" fill="'+p.c1+'"/>';
+  s += '<path d="M50 45 q3 -2 0 -5 q-3 2 0 5Z" fill="rgba(0,0,0,0.12)"/>';
+  return wrap(s);
+}
+function artTulip(p){
+  const c1=p.c1, c2=p.c2||p.c1;
+  let s = '<path d="M50 100 Q48 72 50 52" stroke="#2d6a4f" stroke-width="5.5" fill="none" stroke-linecap="round"/>';
+  s += '<path d="M50 74 Q30 64 24 80 Q40 84 50 74Z" fill="#40916c"/>';
+  s += '<path d="M50 76 Q70 66 78 82 Q58 86 50 76Z" fill="#52b788"/>';
+  s += '<path d="M36 50 C36 74 44 82 50 82 C56 82 64 74 64 50 C58 58 54 56 50 50 C46 56 42 58 36 50Z" fill="'+c2+'"/>';
+  s += '<path d="M44 48 C44 72 47 80 50 82 C53 80 56 72 56 48 C53 54 47 54 44 48Z" fill="'+c1+'"/>';
+  return wrap(s);
+}
+function artBell(p){
+  const c1=p.c1, c2=p.c2||p.c1, n=p.bells||5;
+  let s = '<path d="M50 100 Q50 60 50 32" stroke="#2d6a4f" stroke-width="4.5" fill="none" stroke-linecap="round"/>';
+  s += '<path d="M50 66 Q34 60 30 70 Q42 73 50 66Z" fill="#40916c"/>';
+  for(let i=0;i<n;i++){
+    const y = 38 + i*(50/n);
+    const side = i%2===0 ? -1 : 1;
+    const x = 50 + side*7;
+    const col = i%2===0 ? c1 : c2;
+    s += '<path d="M'+x+' '+y+' q-5 0 -5 7 q0 5 5 5 q5 0 5 -5 q0 -7 -5 -7Z" fill="'+col+'"/>';
+  }
+  s += '<circle cx="50" cy="32" r="4" fill="'+c1+'"/>';
+  return wrap(s);
+}
+function artCluster(p){
+  const c1=p.c1, c2=p.c2||p.c1;
+  let s = stem(p.stem);
+  const pts=[[50,38],[40,46],[60,46],[44,55],[56,55]];
+  pts.forEach((pt,i)=>{
+    s += '<circle cx="'+pt[0]+'" cy="'+pt[1]+'" r="9" fill="'+(i%2?c2:c1)+'"/>';
+    s += '<circle cx="'+pt[0]+'" cy="'+pt[1]+'" r="3" fill="rgba(255,255,255,0.5)"/>';
+  });
+  return wrap(s);
+}
+function artRoot(p){
+  const root=p.root, root2=p.root2||root, tops=p.tops||'#40916c';
+  let s='';
+  for(let i=-2;i<=2;i++){ s += '<path d="M50 56 Q'+(50+i*7)+' '+(30+Math.abs(i)*4)+' '+(50+i*10)+' '+(26+Math.abs(i)*6)+'" stroke="'+tops+'" stroke-width="4" fill="none" stroke-linecap="round"/>'; }
+  const tip = p.long? 96 : 84;
+  s += '<path d="M40 58 Q50 '+(tip-30)+' 50 '+tip+' Q50 '+(tip-30)+' 60 58 Q50 64 40 58Z" fill="'+root+'"/>';
+  s += '<path d="M50 60 Q52 '+(tip-30)+' 50 '+tip+'" stroke="'+root2+'" stroke-width="2" fill="none" opacity="0.6"/>';
+  s += '<path d="M44 66h12M45 74h10" stroke="rgba(0,0,0,0.12)" stroke-width="1.5"/>';
+  return wrap(s);
+}
+function artLeafy(p){
+  const c1=p.c1,c2=p.c2||c1;
+  let s='';
+  s += '<ellipse cx="50" cy="70" rx="32" ry="22" fill="'+c2+'"/>';
+  s += '<ellipse cx="38" cy="62" rx="16" ry="20" fill="'+c1+'"/>';
+  s += '<ellipse cx="62" cy="62" rx="16" ry="20" fill="'+c1+'"/>';
+  s += '<ellipse cx="50" cy="56" rx="17" ry="22" fill="'+c2+'"/>';
+  s += '<ellipse cx="50" cy="62" rx="11" ry="15" fill="'+c1+'"/>';
+  s += '<path d="M50 50v26M40 58q10 6 0 14M60 58q-10 6 0 14" stroke="rgba(0,0,0,0.12)" stroke-width="1.6" fill="none"/>';
+  return wrap(s);
+}
+function artBush(p){
+  const f=p.fruit,f2=p.fruit2||f;
+  let s='';
+  s += '<ellipse cx="50" cy="66" rx="32" ry="24" fill="#2d6a4f"/>';
+  s += '<ellipse cx="42" cy="58" rx="16" ry="14" fill="#40916c"/>';
+  s += '<ellipse cx="60" cy="60" rx="15" ry="13" fill="#52b788"/>';
+  const r = p.small?5:8;
+  [[42,66],[60,68],[51,55]].forEach((c,i)=>{
+    s += '<circle cx="'+c[0]+'" cy="'+c[1]+'" r="'+r+'" fill="'+(i%2?f2:f)+'"/>';
+    s += '<circle cx="'+(c[0]-r*0.3)+'" cy="'+(c[1]-r*0.3)+'" r="'+(r*0.3)+'" fill="rgba(255,255,255,0.5)"/>';
+  });
+  return wrap(s);
+}
+function artVine(p){
+  const f=p.fruit,f2=p.fruit2||f;
+  let s='';
+  if(p.long){
+    s += '<rect x="30" y="58" width="40" height="22" rx="11" fill="'+f+'"/>';
+    s += '<rect x="33" y="61" width="34" height="7" rx="3.5" fill="'+f2+'" opacity="0.6"/>';
+  } else {
+    s += '<ellipse cx="50" cy="68" rx="30" ry="24" fill="'+f+'"/>';
+    if(p.ridges){ for(let i=-2;i<=2;i++){ s+='<path d="M50 44 Q'+(50+i*14)+' 68 50 92" stroke="'+f2+'" stroke-width="2" fill="none" opacity="0.5"/>'; } }
+    else { s += '<ellipse cx="42" cy="60" rx="8" ry="11" fill="'+f2+'" opacity="0.5"/>'; }
+  }
+  s += '<path d="M50 50 Q44 40 36 42" stroke="#1b6b47" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+  s += '<path d="M50 48 Q60 40 70 46 Q58 50 50 48Z" fill="#40916c"/>';
+  s += '<path d="M62 44 q4 -4 8 0 q-4 2 -8 0Z" fill="#52b788"/>';
+  return wrap(s);
+}
+function artTall(p){
+  const c1=p.c1,c2=p.c2||c1;
+  let s='';
+  s += '<rect x="46" y="30" width="8" height="64" rx="4" fill="#1f9d57"/>';
+  s += '<rect x="40" y="40" width="20" height="40" rx="10" fill="'+c1+'"/>';
+  for(let r=0;r<6;r++) for(let c=0;c<3;c++){ s += '<circle cx="'+(44+c*6)+'" cy="'+(46+r*6)+'" r="2.3" fill="'+c2+'"/>'; }
+  s += '<path d="M40 44 Q28 50 30 78 Q40 66 44 60Z" fill="#52b788"/>';
+  s += '<path d="M60 44 Q72 50 70 78 Q60 66 56 60Z" fill="#40916c"/>';
+  return wrap(s);
+}
+function artPod(p){
+  const c1=p.c1||'#52b788';
+  let s = '<path d="M50 100 Q50 60 50 40" stroke="#1f9d57" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  [[-1,52],[1,64],[-1,76]].forEach(arr=>{
+    const side=arr[0], y=arr[1], x=50+side*8;
+    s += '<path d="M'+x+' '+y+' q'+(side*-10)+' 4 '+(side*-10)+' 12 q0 5 '+(side*10)+' 3 q'+(side*6)+' -8 0 -15Z" fill="'+c1+'"/>';
+    s += '<circle cx="'+(x-side*3)+'" cy="'+(y+7)+'" r="2" fill="rgba(255,255,255,0.4)"/>';
+  });
+  return wrap(s);
+}
+const SHAPE_FN = { daisy:artDaisy, lotus:artLotus, rose:artRose, tulip:artTulip, bell:artBell, cluster:artCluster, root:artRoot, leafy:artLeafy, bush:artBush, vine:artVine, tall:artTall, pod:artPod };
+function bloomArt(item){ return (SHAPE_FN[item.art.shape]||artDaisy)(item.art); }
+function artSprout(){
+  return wrap('<path d="M50 100 Q49 80 50 70" stroke="#2d6a4f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+    + '<path d="M50 78 Q34 70 28 80 Q42 86 50 78Z" fill="#52b788"/>'
+    + '<path d="M50 72 Q66 64 72 74 Q58 80 50 72Z" fill="#40916c"/>');
+}
+function artBud(color){
+  return wrap('<path d="M50 100 Q49 70 50 56" stroke="#2d6a4f" stroke-width="5" fill="none" stroke-linecap="round"/>'
+    + '<path d="M50 78 Q34 72 28 82 Q42 86 50 78Z" fill="#40916c"/>'
+    + '<path d="M50 56 q-9 -2 -9 -14 q0 -10 9 -12 q9 2 9 12 q0 12 -9 14Z" fill="'+color+'"/>'
+    + '<path d="M50 30 V56" stroke="rgba(0,0,0,0.12)" stroke-width="1.4"/>');
+}
+const _bloomCache={}, _budCache={};
+function getBloom(item){ if(!_bloomCache[item.id]) _bloomCache[item.id]=bloomArt(item); return _bloomCache[item.id]; }
+function budColorOf(item){ return item.art.c1 || item.art.root || item.art.fruit || '#52b788'; }
+function getBud(item){ if(!_budCache[item.id]) _budCache[item.id]=artBud(budColorOf(item)); return _budCache[item.id]; }
+const SPROUT_SVG = artSprout();
+function stageArt(item, progress, ripe){
+  if(ripe || progress >= 0.85) return getBloom(item);
+  if(progress >= 0.33) return getBud(item);
+  return SPROUT_SVG;
+}
+
+/* ============================================================
+   DATA
+   ============================================================ */
+const FLOWERS = [
+  { id:'daisy',     name:'Daisy',          tier:1, growTime:5,     yield:3,        unlock:0,
+    art:{shape:'daisy', c1:'#ffffff', c2:'#fff4d6', center:'#ffc83d', count:12, len:21, wid:6} },
+  { id:'tulip',     name:'Tulip',          tier:1, growTime:10,    yield:8,        unlock:25,
+    art:{shape:'tulip', c1:'#e63950', c2:'#ff7080'} },
+  { id:'bluebell',  name:'Bluebell',       tier:1, growTime:20,    yield:22,       unlock:100,
+    art:{shape:'bell', c1:'#3a5bdc', c2:'#6f8cff', bells:4} },
+  { id:'blossom',   name:'Cherry Blossom', tier:2, growTime:45,    yield:65,       unlock:350,
+    art:{shape:'lotus', c1:'#ff8fc0', c2:'#ffc2dd', center:'#ffd23f', count:5} },
+  { id:'marigold',  name:'Marigold',       tier:2, growTime:90,    yield:165,      unlock:1200,
+    art:{shape:'daisy', c1:'#ff8c1a', c2:'#ffb347', center:'#c95b00', count:18, len:16, wid:6} },
+  { id:'hibiscus',  name:'Hibiscus',       tier:2, growTime:180,   yield:400,      unlock:4000,
+    art:{shape:'lotus', c1:'#ff3d68', c2:'#ff7d95', center:'#ffd23f', count:5} },
+  { id:'rose',      name:'Pink Rose',      tier:3, growTime:360,   yield:950,      unlock:14000,
+    art:{shape:'rose', c1:'#e63950', c2:'#ff6b81'} },
+  { id:'sweetpea',  name:'Sweet Pea',      tier:3, growTime:720,   yield:2200,     unlock:50000,
+    art:{shape:'cluster', c1:'#b15cff', c2:'#d9a8ff'} },
+  { id:'sunflower', name:'Sunflower',      tier:3, growTime:1200,  yield:4800,     unlock:180000,
+    art:{shape:'daisy', c1:'#ffc41f', c2:'#ffd84d', center:'#6b4226', count:20, len:18, wid:5, seedCenter:true} },
+  { id:'camellia',  name:'Camellia',       tier:4, growTime:1800,  yield:11000,    unlock:600000,
+    art:{shape:'rose', c1:'#ff5d8f', c2:'#ff8fb0'} },
+  { id:'peony',     name:'Peony',          tier:4, growTime:2700,  yield:24000,    unlock:2200000,
+    art:{shape:'rose', c1:'#ff6fae', c2:'#ffa8cf'} },
+  { id:'lavender',  name:'Lavender',       tier:4, growTime:3600,  yield:54000,    unlock:7500000,
+    art:{shape:'bell', c1:'#8a3fd4', c2:'#b97dff', bells:6} },
+  { id:'foxglove',  name:'Foxglove',       tier:5, growTime:5400,  yield:145000,   unlock:30000000,
+    art:{shape:'bell', c1:'#c15cff', c2:'#e0aaff', bells:6} },
+  { id:'starbloom', name:'Star Hibiscus',  tier:5, growTime:7200,  yield:360000,   unlock:110000000,
+    art:{shape:'lotus', c1:'#ff2e63', c2:'#ff6b8f', center:'#ffd23f', count:6} },
+  { id:'helios',    name:'Helios Bloom',   tier:5, growTime:10800, yield:950000,   unlock:400000000,
+    art:{shape:'daisy', c1:'#ffb300', c2:'#ffcf40', center:'#7a4f1d', count:22, len:18, wid:5, seedCenter:true} },
+  { id:'lotus',     name:'Sacred Lotus',   tier:6, growTime:14400, yield:2800000,  unlock:1.5e9,
+    art:{shape:'lotus', c1:'#ff8fab', c2:'#ffd0dd', center:'#ffd23f', count:8} },
+  { id:'dahlia',    name:'Midnight Dahlia',tier:6, growTime:21600, yield:8500000,  unlock:6e9,
+    art:{shape:'daisy', c1:'#7b2cbf', c2:'#9d4edd', center:'#ffd23f', count:20, len:16, wid:5} },
+  { id:'moonlotus', name:'Moon Lotus',     tier:6, growTime:28800, yield:28000000, unlock:25e9,
+    art:{shape:'lotus', c1:'#cdeffd', c2:'#a0c4ff', center:'#bdb2ff', count:8} }
+];
+
+const VEG = [
+  { id:'radish',    name:'Radish',     tier:1, growTime:4,     yield:2,       unlock:0,
+    art:{shape:'root', root:'#e63946', root2:'#ff6b75', tops:'#52b788'} },
+  { id:'lettuce',   name:'Lettuce',    tier:1, growTime:8,     yield:6,       unlock:20,
+    art:{shape:'leafy', c1:'#74c69d', c2:'#52b788'} },
+  { id:'carrot',    name:'Carrot',     tier:1, growTime:16,    yield:16,      unlock:80,
+    art:{shape:'root', root:'#fb8500', root2:'#ffa733', tops:'#40916c', long:true} },
+  { id:'tomato',    name:'Tomato',     tier:2, growTime:36,    yield:48,      unlock:300,
+    art:{shape:'bush', fruit:'#e5383b', fruit2:'#ff6b6e'} },
+  { id:'pepper',    name:'Pepper',     tier:2, growTime:72,    yield:120,     unlock:1000,
+    art:{shape:'bush', fruit:'#ffb703', fruit2:'#ffd24d'} },
+  { id:'cucumber',  name:'Cucumber',   tier:2, growTime:150,   yield:300,     unlock:3500,
+    art:{shape:'vine', fruit:'#588157', fruit2:'#7aa874', long:true} },
+  { id:'corn',      name:'Corn',       tier:3, growTime:300,   yield:700,     unlock:12000,
+    art:{shape:'tall', c1:'#ffd60a', c2:'#ffe566'} },
+  { id:'aubergine', name:'Aubergine',  tier:3, growTime:600,   yield:1600,    unlock:45000,
+    art:{shape:'bush', fruit:'#7209b7', fruit2:'#9d4edd'} },
+  { id:'courgette', name:'Courgette',  tier:3, growTime:1000,  yield:3500,    unlock:160000,
+    art:{shape:'vine', fruit:'#386641', fruit2:'#588157', long:true} },
+  { id:'pumpkin',   name:'Pumpkin',    tier:4, growTime:1500,  yield:8000,    unlock:550000,
+    art:{shape:'vine', fruit:'#fb8500', fruit2:'#ffa733', ridges:true} },
+  { id:'chilli',    name:'Chilli',     tier:4, growTime:2200,  yield:18000,   unlock:2000000,
+    art:{shape:'bush', fruit:'#d00000', fruit2:'#ff4d4d', small:true} },
+  { id:'cabbage',   name:'Cabbage',    tier:4, growTime:3000,  yield:40000,   unlock:7000000,
+    art:{shape:'leafy', c1:'#80b918', c2:'#aacc00'} },
+  { id:'melon',     name:'Melon',      tier:5, growTime:4500,  yield:100000,  unlock:28000000,
+    art:{shape:'vine', fruit:'#90be6d', fruit2:'#b7e4a0'} },
+  { id:'squash',    name:'Squash',     tier:5, growTime:6000,  yield:260000,  unlock:100000000,
+    art:{shape:'vine', fruit:'#f3722c', fruit2:'#f8961e'} },
+  { id:'beetroot',  name:'Beetroot',   tier:5, growTime:9000,  yield:700000,  unlock:380000000,
+    art:{shape:'root', root:'#9d0208', root2:'#d00000', tops:'#52b788'} }
+];
+
+const PLANT_BY_ID = {};
+FLOWERS.concat(VEG).forEach(p => { PLANT_BY_ID[p.id] = p; });
+const FLOWER_TIERS = { 1:'Sprouts', 2:'Cottage', 3:'Rose Garden', 4:'Wildflowers', 5:'Exotic', 6:'Enchanted' };
+const VEG_TIERS = { 1:'Salad Bed', 2:'Vine', 3:'Field', 4:'Patch', 5:'Harvest' };
+
+const POTS = [
+  { id:'none',    name:'Bare Soil',    icon:'bed',         growth:1,    yieldM:1,    cost:0 },
+  { id:'wood',    name:'Wooden Box',   icon:'pot_wood',    growth:1.15, yieldM:1.1,  cost:200 },
+  { id:'clay',    name:'Clay Pot',     icon:'pot_clay',    growth:1.3,  yieldM:1.25, cost:2500 },
+  { id:'ceramic', name:'Glazed Pot',   icon:'pot_ceramic', growth:1.5,  yieldM:1.5,  cost:30000 },
+  { id:'crystal', name:'Crystal Pot',  icon:'pot_crystal', growth:1.8,  yieldM:2,    cost:500000 },
+  { id:'magic',   name:'Magic Urn',    icon:'pot_magic',   growth:2.4,  yieldM:3,    cost:9000000 }
+];
+const POT_BY_ID = {}; POTS.forEach((p,i)=>{ p.idx=i; POT_BY_ID[p.id]=p; });
+
+const UPGRADES = [
+  { id:'greenThumb', name:'Green Thumb',  icon:'thumb',    desc:'+12% growth speed per level', max:25, baseCost:500,    costMul:1.55, effect:'growth' },
+  { id:'richSoil',   name:'Rich Soil',    icon:'worm',     desc:'+15% coins per harvest per level', max:25, baseCost:800, costMul:1.6, effect:'yield' },
+  { id:'bigBucket',  name:'Bigger Bucket',icon:'bucket',   desc:'+50 max water per level',  max:20, baseCost:300,    costMul:1.5,  effect:'waterCap' },
+  { id:'spring',     name:'Spring Source',icon:'fountain', desc:'+0.5 water/sec per level', max:20, baseCost:600,    costMul:1.55, effect:'waterRegen' },
+  { id:'strongArms', name:'Strong Arms',  icon:'arm',      desc:'+1 growth per tap per level', max:15, baseCost:1500, costMul:1.7,  effect:'clickPower' },
+  { id:'diary',      name:"Gardener's Diary", icon:'book', desc:'+2h offline cap per level', max:12, baseCost:5000,  costMul:1.8,  effect:'offline' }
+];
+
+const FEATURES = [
+  { id:'sprinkler',    name:'Sprinkler',      icon:'sprinkler', desc:'Auto-waters a random plant every 5s', cost:4500 },
+  { id:'sprinklerPro', name:'Mist System',    icon:'sprinkler', desc:'Sprinkler waters every 2s instead', cost:60000, req:'sprinkler' },
+  { id:'gnome',        name:'Garden Gnome',   icon:'gnome',     desc:'Auto-harvests blooms every 8s', cost:25000 },
+  { id:'gnomePro',     name:'Speedy Gnome',   icon:'gnome',     desc:'Gnome harvests every 3s instead', cost:200000, req:'gnome' },
+  { id:'autoPlanter',  name:'Auto-Planter',   icon:'robot',     desc:'Replants empty beds with your seed', cost:120000 },
+  { id:'beehive',      name:'Beehive',        icon:'bee',       desc:'+50% coins from every harvest', cost:5000000 },
+  { id:'fertiliser',   name:'Fertiliser Cart',icon:'flask',     desc:'Unlocks a 2x growth booster (2 min)', cost:15000000 },
+  { id:'growLights',   name:'Grow Lights',    icon:'bulb',      desc:'+40% growth in the greenhouse', cost:800000, gh:true },
+  { id:'heater',       name:'Heat Lamps',     icon:'heater',    desc:'+40% coins from greenhouse veg', cost:3500000, gh:true }
+];
+
+const ACHIEVEMENTS = [
+  { id:'firstHarvest', name:'First Bloom',   desc:'Harvest your first flower',     icon:'leaf',     check:s=>s.totalHarvested>=1 },
+  { id:'hundred',      name:'Getting Going', desc:'Harvest 100 times',             icon:'leaf',     check:s=>s.totalHarvested>=100 },
+  { id:'thousand',     name:'Busy Bee',      desc:'Harvest 1,000 times',           icon:'bee',      check:s=>s.totalHarvested>=1000 },
+  { id:'coin1k',       name:'Pocket Money',  desc:'Earn 1,000 coins total',        icon:'coin',     check:s=>s.totalEarned>=1000 },
+  { id:'coin1m',       name:'Millionaire',   desc:'Earn 1,000,000 coins total',    icon:'coin',     check:s=>s.totalEarned>=1e6 },
+  { id:'coin1b',       name:'Tycoon',        desc:'Earn 1 billion coins total',    icon:'crown',    check:s=>s.totalEarned>=1e9 },
+  { id:'greenhouse',   name:'Under Glass',   desc:'Build the greenhouse',          icon:'greenhouse', check:s=>s.greenhouse.built },
+  { id:'fullGarden',   name:'No Spare Soil', desc:'Unlock all 16 garden beds',     icon:'bed',      check:s=>s.garden.plots.every(p=>p.unlocked) },
+  { id:'fullVeg',      name:'Glasshouse Full',desc:'Unlock all greenhouse beds',   icon:'greenhouse', check:s=>s.greenhouse.built && s.greenhouse.plots.every(p=>p.unlocked) },
+  { id:'magicPot',     name:'A Touch of Magic',desc:'Place a Magic Urn',           icon:'pot_magic',check:s=>allPlots(s).some(p=>p.pot==='magic') },
+  { id:'allFlowers',   name:'Florist',       desc:'Unlock every flower',           icon:'flower',   check:s=>FLOWERS.every(f=>s.totalEarned>=f.unlock) },
+  { id:'allVeg',       name:'Market Gardener',desc:'Unlock every vegetable',       icon:'veg',      check:s=>VEG.every(v=>s.totalEarned>=v.unlock) },
+  { id:'orders10',     name:'Reliable Supplier',desc:'Complete 10 market orders',  icon:'orders',   check:s=>s.ordersDone>=10 },
+  { id:'butterfly',    name:'Flutterby',     desc:'Catch a butterfly',             icon:'butterfly',check:s=>s.butterfliesCaught>=1 },
+  { id:'compost1',     name:'Circle of Life',desc:'Compost the garden once',       icon:'compost',  check:s=>s.composts>=1 },
+  { id:'compost5',     name:'Renewal',       desc:'Compost 5 times',               icon:'sparkle',  check:s=>s.composts>=5 }
+];
+
+const COMPOST_UNLOCK = 1e7;     // lifetime earnings before compost is offered
+const GREENHOUSE_COST = 50000;  // coins to build greenhouse
+const GARDEN_PLOTS = 16, GH_PLOTS = 12, START_PLOTS = 4;
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const SAVE_KEY = 'idleGarden_v2';
+let state, saveTimer = 0;
+
+function makePlots(n, started){
+  const arr = [];
+  for(let i=0;i<n;i++) arr.push({ unlocked: i<started, plant:null, plantedAt:0, accumulated:0, pot:'none', autoReplant:false });
+  return arr;
+}
+function createNewState(){
+  return {
+    version: 2,
+    coins: 0, water: 100, maxWaterBase: 100,
+    totalEarned: 0, totalHarvested: 0, totalTaps: 0, ordersDone: 0, butterfliesCaught: 0,
+    garden: { plots: makePlots(GARDEN_PLOTS, START_PLOTS), selected: 'daisy' },
+    greenhouse: { built: false, plots: makePlots(GH_PLOTS, START_PLOTS), selected: 'radish' },
+    upgrades: {}, features: {},
+    harvestCounts: {}, orders: [], orderSkipUsed: 0,
+    achievements: {}, achQueue: [],
+    compost: 0, composts: 0,
+    fertiliserActiveUntil: 0,
+    sprinklerTimer: 0, gnomeTimer: 0,
+    lastTick: Date.now(), started: Date.now(),
+    seenWelcome: false
+  };
+}
+function allPlots(s){ return s.garden.plots.concat(s.greenhouse.plots); }
+function rosterFor(area){ return area==='greenhouse' ? VEG : FLOWERS; }
+function tierNameFor(area, t){ return (area==='greenhouse'?VEG_TIERS:FLOWER_TIERS)[t]; }
+
+function save(){
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e){}
+}
+function load(){
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const data = JSON.parse(raw);
+    if(!data || data.version !== 2) return false;
+    state = Object.assign(createNewState(), data);
+    // ensure nested shapes
+    state.garden = Object.assign({ plots: makePlots(GARDEN_PLOTS,START_PLOTS), selected:'daisy' }, data.garden||{});
+    state.greenhouse = Object.assign({ built:false, plots: makePlots(GH_PLOTS,START_PLOTS), selected:'radish' }, data.greenhouse||{});
+    state.upgrades = data.upgrades||{}; state.features = data.features||{};
+    state.harvestCounts = data.harvestCounts||{}; state.orders = data.orders||[];
+    state.achievements = data.achievements||{}; state.achQueue = [];
+    return true;
+  } catch(e){ return false; }
+}
+
+/* ============================================================
+   ECONOMY / MULTIPLIERS
+   ============================================================ */
+function up(id){ return state.upgrades[id]||0; }
+function has(id){ return !!state.features[id]; }
+function maxWater(){ return state.maxWaterBase + up('bigBucket')*50; }
+function waterRegen(){ return 1 + up('spring')*0.5; }
+function clickPower(){ return 1 + up('strongArms'); }
+function offlineCapH(){ return 2 + up('diary')*2; }
+function compostMult(){ return 1 + state.compost*0.05; }
+function globalGrowthMult(){
+  let m = 1 + up('greenThumb')*0.12;
+  if(state.fertiliserActiveUntil > Date.now()) m *= 2;
+  return m;
+}
+function globalYieldMult(){
+  let m = (1 + up('richSoil')*0.15) * compostMult();
+  if(has('beehive')) m *= 1.5;
+  return m;
+}
+function plotGrowthMult(area, plot){
+  let m = POT_BY_ID[plot.pot].growth * globalGrowthMult();
+  if(area==='greenhouse' && has('growLights')) m *= 1.4;
+  return m;
+}
+function plotYieldMult(area, plot){
+  let m = POT_BY_ID[plot.pot].yieldM * globalYieldMult();
+  if(area==='greenhouse' && has('heater')) m *= 1.4;
+  return m;
+}
+function plantUnlocked(p){ return state.totalEarned >= p.unlock; }
+function plotCost(area, idx){
+  const base = area==='greenhouse' ? 4000 : 150;
+  const n = idx - START_PLOTS;
+  return Math.floor(base * Math.pow(3.4, n));
+}
+function progressOf(area, plot){
+  if(!plot.plant) return 0;
+  const p = PLANT_BY_ID[plot.plant];
+  const effTime = p.growTime / plotGrowthMult(area, plot);
+  const elapsed = plot.accumulated + (Date.now() - plot.plantedAt)/1000;
+  return Math.min(1, elapsed / effTime);
+}
+function harvestValue(area, plot){
+  const p = PLANT_BY_ID[plot.plant];
+  return Math.max(1, Math.floor(p.yield * plotYieldMult(area, plot)));
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+function addCoins(n){ state.coins += n; state.totalEarned += n; }
+
+function plantSeed(area, idx, seedId){
+  const ar = state[area];
+  const plot = ar.plots[idx];
+  if(!plot.unlocked || plot.plant) return false;
+  const p = PLANT_BY_ID[seedId];
+  if(!p || !plantUnlocked(p)) return false;
+  plot.plant = seedId; plot.plantedAt = Date.now(); plot.accumulated = 0;
+  return true;
+}
+function harvestPlot(area, idx, ev){
+  const plot = state[area].plots[idx];
+  if(!plot.plant) return false;
+  if(progressOf(area, plot) < 1) return false;
+  const val = harvestValue(area, plot);
+  addCoins(val);
+  state.totalHarvested++;
+  const id = plot.plant;
+  state.harvestCounts[id] = (state.harvestCounts[id]||0) + 1;
+  if(ev) floatPop(ev, '+'+fmt(val), 'coin');
+  if(plot.autoReplant && plantUnlocked(PLANT_BY_ID[id])){
+    plot.plantedAt = Date.now(); plot.accumulated = 0;
+  } else {
+    plot.plant = null; plot.accumulated = 0;
+  }
+  return true;
+}
+function waterPlot(area, idx, ev){
+  const plot = state[area].plots[idx];
+  if(!plot.plant || state.water < 1) return false;
+  if(progressOf(area, plot) >= 1) return false;
+  const p = PLANT_BY_ID[plot.plant];
+  const effTime = p.growTime / plotGrowthMult(area, plot);
+  const boost = effTime * 0.04 * clickPower();
+  plot.accumulated += boost;
+  state.water = Math.max(0, state.water - 1);
+  state.totalTaps++;
+  if(ev) waterDrop(ev);
+  return true;
+}
+function onPlotTap(area, idx, ev){
+  const plot = state[area].plots[idx];
+  if(!plot.unlocked){ tryUnlockPlot(area, idx); return; }
+  if(!plot.plant){ openSeedPicker(area, idx); return; }
+  if(progressOf(area, plot) >= 1){ harvestPlot(area, idx, ev); }
+  else { waterPlot(area, idx, ev); }
+  renderArea(area); renderHeader();
+}
+function tryUnlockPlot(area, idx){
+  const cost = plotCost(area, idx);
+  if(state.coins < cost){ toast('Need '+fmt(cost)+' coins for this bed'); return; }
+  state.coins -= cost;
+  state[area].plots[idx].unlocked = true;
+  toast('New bed ready!', 'good');
+  renderArea(area); renderHeader();
+}
+function plantAll(area){
+  const ar = state[area];
+  if(!plantUnlocked(PLANT_BY_ID[ar.selected])){ toast('That seed is locked'); return; }
+  let n=0;
+  ar.plots.forEach((plot,i)=>{ if(plot.unlocked && !plot.plant){ if(plantSeed(area,i,ar.selected)) n++; } });
+  if(n) toast('Planted '+n+' '+PLANT_BY_ID[ar.selected].name+(n>1?'s':''), 'good');
+  renderArea(area);
+}
+function waterAll(area){
+  const ar = state[area];
+  let n=0;
+  ar.plots.forEach((plot,i)=>{ if(state.water>=1 && plot.plant && progressOf(area,plot)<1){ if(waterPlot(area,i)) n++; } });
+  if(!n) toast('Nothing to water');
+  renderArea(area); renderHeader();
+}
+
+function buyPot(area, idx, potId){
+  const pot = POT_BY_ID[potId];
+  const plot = state[area].plots[idx];
+  if(POT_BY_ID[plot.pot].idx >= pot.idx) return;
+  if(state.coins < pot.cost){ toast('Need '+fmt(pot.cost)+' coins'); return; }
+  state.coins -= pot.cost;
+  plot.pot = potId;
+  toast(pot.name+' placed', 'good');
+  closeModal(); renderArea(area); renderHeader();
+}
+function upgradeCost(u){ return Math.floor(u.baseCost * Math.pow(u.costMul, up(u.id))); }
+function buyUpgrade(id){
+  const u = UPGRADES.find(x=>x.id===id);
+  if(up(id) >= u.max){ return; }
+  const cost = upgradeCost(u);
+  if(state.coins < cost){ toast('Need '+fmt(cost)+' coins'); return; }
+  state.coins -= cost;
+  state.upgrades[id] = up(id)+1;
+  if(id==='bigBucket') state.water = Math.min(maxWater(), state.water);
+  renderShop(); renderHeader();
+}
+function buyFeature(id){
+  const f = FEATURES.find(x=>x.id===id);
+  if(has(id)) return;
+  if(f.req && !has(f.req)){ toast('Requires '+FEATURES.find(x=>x.id===f.req).name); return; }
+  if(f.gh && !state.greenhouse.built){ toast('Build the greenhouse first'); return; }
+  if(state.coins < f.cost){ toast('Need '+fmt(f.cost)+' coins'); return; }
+  state.coins -= f.cost;
+  state.features[id] = true;
+  toast(f.name+' unlocked!', 'good');
+  renderShop(); renderHeader();
+}
+function buildGreenhouse(){
+  if(state.greenhouse.built) return;
+  if(state.coins < GREENHOUSE_COST){ toast('Need '+fmt(GREENHOUSE_COST)+' coins'); return; }
+  state.coins -= GREENHOUSE_COST;
+  state.greenhouse.built = true;
+  toast('Greenhouse built! Veg awaits.', 'good');
+  renderGreenhouse(); renderHeader(); buildTabs();
+}
+function useFertiliser(){
+  if(!has('fertiliser')) return;
+  if(state.fertiliserActiveUntil > Date.now()){ toast('Booster already active'); return; }
+  state.fertiliserActiveUntil = Date.now() + 120000;
+  toast('Fertiliser! 2x growth for 2 min', 'gold');
+  renderShop();
+}
+
+/* ===== COMPOST (prestige) ===== */
+function compostGain(){
+  if(state.totalEarned < COMPOST_UNLOCK) return 0;
+  return Math.floor(Math.pow(state.totalEarned / COMPOST_UNLOCK, 0.5) * 4);
+}
+function doCompost(){
+  const gain = compostGain();
+  if(gain < 1) return;
+  const keepUpgrades = {}; // reset everything growth-related except compost perks
+  state.compost += gain;
+  state.composts++;
+  // reset
+  const savedCompost = state.compost, savedComposts = state.composts;
+  const savedAch = state.achievements, savedStats = { th: state.totalHarvested, te: state.totalEarned, taps: state.totalTaps, od: state.ordersDone, bf: state.butterfliesCaught };
+  const ghBuilt = state.greenhouse.built;
+  state = createNewState();
+  state.compost = savedCompost; state.composts = savedComposts;
+  state.achievements = savedAch;
+  state.totalHarvested = savedStats.th; state.totalEarned = savedStats.te; state.totalTaps = savedStats.taps;
+  state.ordersDone = savedStats.od; state.butterfliesCaught = savedStats.bf;
+  state.greenhouse.built = ghBuilt;
+  state.seenWelcome = true;
+  closeModal();
+  toast('Composted! +'+gain+' compost ('+(state.compost*5)+'% yield)', 'gold');
+  save(); renderAll();
+}
+
+/* ===== ORDERS ===== */
+function genOrder(){
+  // choose an unlocked plant, weight toward mid-tier
+  const pool = FLOWERS.concat(state.greenhouse.built ? VEG : []).filter(plantUnlocked);
+  if(!pool.length) return null;
+  const p = pool[Math.floor(Math.random()*pool.length)];
+  const qty = 3 + Math.floor(Math.random()*6);
+  const reward = Math.floor(p.yield * qty * (2.2 + Math.random()*1.3));
+  const bonusWater = Math.random()<0.3 ? 20+Math.floor(Math.random()*40) : 0;
+  return { plant:p.id, qty, baseline:(state.harvestCounts[p.id]||0), reward, bonusWater, created:Date.now() };
+}
+function refillOrders(){
+  while(state.orders.length < 3){
+    const o = genOrder();
+    if(!o) break;
+    state.orders.push(o);
+  }
+}
+function orderProgress(o){ return Math.min(o.qty, (state.harvestCounts[o.plant]||0) - o.baseline); }
+function claimOrder(i){
+  const o = state.orders[i];
+  if(!o || orderProgress(o) < o.qty) return;
+  addCoins(o.reward);
+  if(o.bonusWater) state.water = Math.min(maxWater(), state.water + o.bonusWater);
+  state.ordersDone++;
+  state.orders.splice(i,1);
+  refillOrders();
+  toast('Order filled! +'+fmt(o.reward)+' coins', 'gold');
+  renderOrders(); renderHeader();
+}
+function skipOrder(i){
+  const o = genOrder();
+  if(o){ state.orders[i] = o; renderOrders(); }
+}
+
+/* ===== ACHIEVEMENTS ===== */
+function checkAchievements(){
+  ACHIEVEMENTS.forEach(a=>{
+    if(!state.achievements[a.id] && a.check(state)){
+      state.achievements[a.id] = Date.now();
+      toast('Achievement: '+a.name, 'gold');
+    }
+  });
+}
+
+/* ===== AUTOMATION ===== */
+function runAutomation(dt){
+  // sprinkler
+  if(has('sprinkler')){
+    const interval = has('sprinklerPro') ? 2 : 5;
+    state.sprinklerTimer += dt;
+    while(state.sprinklerTimer >= interval){
+      state.sprinklerTimer -= interval;
+      const cand = automationPlots().filter(x=>x.plot.plant && progressOf(x.area,x.plot)<1 && state.water>=1);
+      if(cand.length){ const c=cand[Math.floor(Math.random()*cand.length)]; waterPlot(c.area, c.idx); }
+    }
+  }
+  // gnome
+  if(has('gnome')){
+    const interval = has('gnomePro') ? 3 : 8;
+    state.gnomeTimer += dt;
+    while(state.gnomeTimer >= interval){
+      state.gnomeTimer -= interval;
+      const ripe = automationPlots().filter(x=>x.plot.plant && progressOf(x.area,x.plot)>=1);
+      if(ripe.length){ const c=ripe[0]; harvestPlot(c.area, c.idx); }
+    }
+  }
+  // auto-planter
+  if(has('autoPlanter')){
+    ['garden','greenhouse'].forEach(area=>{
+      if(area==='greenhouse' && !state.greenhouse.built) return;
+      const ar = state[area];
+      if(!plantUnlocked(PLANT_BY_ID[ar.selected])) return;
+      ar.plots.forEach((plot,i)=>{ if(plot.unlocked && !plot.plant) plantSeed(area,i,ar.selected); });
+    });
+  }
+}
+function automationPlots(){
+  const out = [];
+  state.garden.plots.forEach((plot,idx)=>out.push({area:'garden',idx,plot}));
+  if(state.greenhouse.built) state.greenhouse.plots.forEach((plot,idx)=>out.push({area:'greenhouse',idx,plot}));
+  return out;
+}
+
+/* ===== OFFLINE ===== */
+function estimateIncomePerSec(){
+  let total = 0;
+  automationPlots().forEach(({area,plot})=>{
+    if(!plot.plant) return;
+    const p = PLANT_BY_ID[plot.plant];
+    const effTime = p.growTime / plotGrowthMult(area, plot);
+    total += harvestValue(area, plot) / effTime;
+  });
+  return total;
+}
+function processOffline(){
+  const now = Date.now();
+  const elapsed = Math.min((now - state.lastTick)/1000, offlineCapH()*3600);
+  state.lastTick = now;
+  if(elapsed < 30) return null;
+  let earned = 0, grown = 0;
+  automationPlots().forEach(({area,plot})=>{
+    if(!plot.plant) return;
+    const p = PLANT_BY_ID[plot.plant];
+    const effTime = p.growTime / plotGrowthMult(area, plot);
+    plot.accumulated += elapsed;
+    const cycles = Math.floor(plot.accumulated / effTime);
+    if(cycles > 0){
+      if(has('gnome')){
+        earned += cycles * harvestValue(area, plot);
+        grown += cycles;
+        state.harvestCounts[plot.plant] = (state.harvestCounts[plot.plant]||0) + cycles;
+        if(plot.autoReplant || has('autoPlanter')){ plot.accumulated = plot.accumulated % effTime; }
+        else { plot.accumulated = effTime; } // sits ripe
+      } else {
+        plot.accumulated = Math.min(plot.accumulated, effTime); // ripe, waiting
+      }
+    }
+  });
+  if(earned>0){ addCoins(earned); state.totalHarvested += grown; }
+  state.water = Math.min(maxWater(), state.water + waterRegen()*elapsed);
+  return { elapsed, earned, grown };
+}
+
+/* ===== TICK ===== */
+function tick(){
+  const now = Date.now();
+  const dt = Math.min((now - state.lastTick)/1000, 5);
+  state.lastTick = now;
+  state.water = Math.min(maxWater(), state.water + waterRegen()*dt);
+  runAutomation(dt);
+  refillOrders();
+  checkAchievements();
+  saveTimer += dt;
+  if(saveTimer >= 8){ saveTimer = 0; save(); }
+}
+
+/* ============================================================
+   HELPERS / EFFECTS
+   ============================================================ */
+function fmt(n){
+  n = Math.floor(n);
+  if(n < 1000) return ''+n;
+  const u=['','K','M','B','T','Qa','Qi','Sx']; let i=0, v=n;
+  while(v>=1000 && i<u.length-1){ v/=1000; i++; }
+  return (v>=100? v.toFixed(0) : v.toFixed(v>=10?1:2)) + u[i];
+}
+function fmtTime(s){
+  s=Math.floor(s);
+  if(s<60) return s+'s';
+  if(s<3600) return Math.floor(s/60)+'m '+(s%60)+'s';
+  return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';
+}
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+let toastStack;
+function toast(msg, type){
+  if(!toastStack) toastStack = document.getElementById('toastStack');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type? ' '+type : '');
+  let icon = '';
+  if(type==='gold') icon = ic('sparkle',16);
+  else if(type==='good') icon = ic('check',16);
+  t.innerHTML = icon + '<span>'+msg+'</span>';
+  toastStack.appendChild(t);
+  setTimeout(()=>t.remove(), 3100);
+}
+function floatPop(ev, text, icon){
+  const el = document.createElement('div');
+  el.className = 'float-pop';
+  el.innerHTML = '<span>'+text+'</span>' + (icon? ic(icon,15) : '');
+  el.style.left = ev.clientX + 'px';
+  el.style.top = (ev.clientY - 14) + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1100);
+}
+function waterDrop(ev){
+  const el = document.createElement('div');
+  el.className = 'water-pop';
+  el.innerHTML = ic('water',16);
+  el.style.left = ev.clientX + 'px';
+  el.style.top = (ev.clientY - 8) + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 800);
+}
+
+/* ============================================================
+   RENDER — header
+   ============================================================ */
+function renderHeader(){
+  document.getElementById('resCoins').textContent = fmt(state.coins);
+  document.getElementById('resWater').textContent = Math.floor(state.water)+'/'+maxWater();
+  document.getElementById('waterFill').style.width = (state.water/maxWater()*100)+'%';
+  document.getElementById('resCompost').textContent = fmt(state.compost);
+}
+
+/* ============================================================
+   RENDER — grids (with stage-diff for performance)
+   ============================================================ */
+function ensureCells(gridEl, area){
+  const n = state[area].plots.length;
+  if(gridEl.childElementCount === n) return;
+  gridEl.innerHTML = '';
+  for(let i=0;i<n;i++){
+    const cell = document.createElement('div');
+    cell.className = 'plot';
+    (function(idx){ cell.addEventListener('click', e=>onPlotTap(area, idx, e)); })(i);
+    gridEl.appendChild(cell);
+  }
+}
+function updateCell(area, idx, gridEl){
+  const cell = gridEl.children[idx];
+  const plot = state[area].plots[idx];
+  let sig, html, ds, planted=false, prog=0, ripe=false;
+  if(!plot.unlocked){
+    ds='locked';
+    const cost = plotCost(area, idx);
+    sig = 'L'+cost;
+    html = '<div class="plot-locked">'+ic('lock',22)+'<span>'+fmt(cost)+'</span></div>';
+  } else if(!plot.plant){
+    ds='empty';
+    sig = 'E';
+    html = '<div class="plot-add" style="color:rgba(255,250,245,0.55)">'+ic('plus',30)+'</div>';
+  } else {
+    ds='planted'; planted=true;
+    const item = PLANT_BY_ID[plot.plant];
+    prog = progressOf(area, plot); ripe = prog>=1;
+    const stage = (ripe||prog>=0.85)?'bloom':(prog>=0.33?'bud':'sprout');
+    sig = 'P'+plot.plant+stage+plot.pot;
+    html = '<div class="plot-art">'+stageArt(item, prog, ripe)+'</div>'
+      + (plot.pot!=='none'? '<div class="pot-badge">'+ic(POT_BY_ID[plot.pot].icon,16)+'</div>' : '')
+      + '<div class="plot-progress"><div class="plot-progress-fill" style="width:'+(prog*100).toFixed(1)+'%"></div></div>';
+  }
+  cell.setAttribute('data-state', ds);
+  if(cell.dataset.sig !== sig){ cell.dataset.sig = sig; cell.innerHTML = html; }
+  if(planted){
+    const fill = cell.querySelector('.plot-progress-fill');
+    if(fill) fill.style.width = (prog*100).toFixed(1)+'%';
+    cell.classList.toggle('ripe', ripe);
+  } else {
+    cell.classList.remove('ripe');
+  }
+}
+function updateGrid(gridEl, area){
+  ensureCells(gridEl, area);
+  for(let i=0;i<state[area].plots.length;i++) updateCell(area, i, gridEl);
+}
+
+function renderChip(elId, area){
+  const ar = state[area];
+  const item = PLANT_BY_ID[ar.selected];
+  const el = document.getElementById(elId);
+  el.innerHTML = '<div class="sc-art">'+getBloom(item)+'</div>'
+    + '<div class="sc-name">'+item.name+'<small>'+(area==='greenhouse'?'Veg':'Flower')+'</small></div>';
+  el.onclick = ()=>openSeedPicker(area, null);
+}
+
+function renderGarden(){
+  document.getElementById('gardenH').innerHTML = ic('flower',24)+' Garden';
+  updateGrid(document.getElementById('gardenGrid'), 'garden');
+  renderChip('gardenChip', 'garden');
+  const pb = document.getElementById('gardenPlant');
+  pb.innerHTML = ic('seed',18)+'<span>Plant</span>';
+  pb.onclick = ()=>plantAll('garden');
+  const wb = document.getElementById('gardenWater');
+  wb.innerHTML = ic('water',18)+'<span>Water</span>';
+  wb.onclick = ()=>waterAll('garden');
+}
+
+function renderGreenhouse(){
+  const c = document.getElementById('ghContent');
+  if(!state.greenhouse.built){
+    c.innerHTML =
+      '<div class="build-prompt">'
+      + '<div class="bp-art">'+ic('greenhouse',120)+'</div>'
+      + '<h3>Build a Greenhouse</h3>'
+      + '<p>Unlock a second growing area for vegetables — radishes, tomatoes, pumpkins and more. Warm, weatherproof, all year round.</p>'
+      + '<button class="build-btn" id="ghBuildBtn">'+ic('build',18)+'Build for '+fmt(GREENHOUSE_COST)+' coins</button>'
+      + '</div>';
+    const b = document.getElementById('ghBuildBtn');
+    b.disabled = state.coins < GREENHOUSE_COST;
+    b.onclick = buildGreenhouse;
+    return;
+  }
+  if(!document.getElementById('greenhouseGrid')){
+    c.innerHTML =
+      '<div class="grow-header"><h2 id="ghH"></h2><p>warm beds · tap veg to water · tap when grown to gather</p></div>'
+      + '<div class="plot-grid" id="greenhouseGrid"></div>'
+      + '<div class="grow-actions three">'
+      + '<div class="seed-chip" id="ghChip"></div>'
+      + '<button class="action-btn primary" id="ghPlant"></button>'
+      + '<button class="action-btn water" id="ghWater"></button>'
+      + '</div>';
+    document.getElementById('ghH').innerHTML = ic('greenhouse',24)+' Greenhouse';
+  }
+  updateGrid(document.getElementById('greenhouseGrid'), 'greenhouse');
+  renderChip('ghChip', 'greenhouse');
+  const pb = document.getElementById('ghPlant');
+  pb.innerHTML = ic('seed',18)+'<span>Plant</span>';
+  pb.onclick = ()=>plantAll('greenhouse');
+  const wb = document.getElementById('ghWater');
+  wb.innerHTML = ic('water',18)+'<span>Water</span>';
+  wb.onclick = ()=>waterAll('greenhouse');
+}
+
+function renderArea(area){ area==='garden' ? renderGarden() : renderGreenhouse(); }
+
+/* ============================================================
+   RENDER — seed picker / bed modal
+   ============================================================ */
+function openSeedPicker(area, idx){
+  const ar = state[area];
+  const roster = rosterFor(area);
+  const tiers = area==='greenhouse'?VEG_TIERS:FLOWER_TIERS;
+  let body = '<div class="modal-sub">'+(idx!=null?'plant this bed, or pick your seed':'choose your seed')+'</div>';
+  let lastTier = 0;
+  body += '<div class="seed-grid">';
+  roster.forEach(p=>{
+    const unlocked = plantUnlocked(p);
+    const sel = ar.selected===p.id;
+    body += '<div class="seed-cell'+(unlocked?'':' locked')+(sel?' selected':'')+'" data-id="'+p.id+'">'
+      + '<div class="sc-im">'+(unlocked?getBloom(p):ic('lock',32))+'</div>'
+      + '<div class="sc-nm">'+(unlocked?p.name:'???')+'</div>'
+      + '<div class="sc-yl">'+(unlocked? fmt(p.yield)+' coins' : 'at '+fmt(p.unlock))+'</div>'
+      + '</div>';
+  });
+  body += '</div>';
+  let potSection = '';
+  if(idx!=null){
+    const plot = ar.plots[idx];
+    potSection = '<div class="section-label">'+ic('pot_clay',16)+' Pot for this bed</div><div class="pot-options">';
+    POTS.forEach(pot=>{
+      const cur = plot.pot===pot.id;
+      const owned = POT_BY_ID[plot.pot].idx >= pot.idx;
+      const can = state.coins >= pot.cost;
+      potSection += '<div class="pot-option'+(cur?' current':'')+(owned&&!cur?' locked':'')+'" data-pot="'+pot.id+'">'
+        + '<div class="pot-emoji">'+ic(pot.icon,30)+'</div>'
+        + '<div class="pot-body"><div class="pot-name">'+pot.name+'</div>'
+        + '<div class="pot-perks">×'+pot.growth+' growth · ×'+pot.yieldM+' coins</div></div>'
+        + (cur? '<div class="pot-cost" style="color:var(--good)">'+ic('check',14)+'</div>'
+            : owned? '<div class="pot-cost" style="color:var(--muted)">owned</div>'
+            : '<div class="pot-cost'+(can?'':'')+'" style="color:'+(can?'var(--ink)':'var(--muted)')+'">'+ic('coin',12)+fmt(pot.cost)+'</div>')
+        + '</div>';
+    });
+    potSection += '</div>';
+  }
+  openModal((idx!=null?'Bed':'Seeds'), body + potSection, null, 'seedModal');
+  // wire seed cells
+  document.querySelectorAll('#seedModal .seed-cell').forEach(cell=>{
+    cell.addEventListener('click', ()=>{
+      const id = cell.getAttribute('data-id');
+      if(!plantUnlocked(PLANT_BY_ID[id])){ toast('Unlocks at '+fmt(PLANT_BY_ID[id].unlock)+' coins'); return; }
+      ar.selected = id;
+      if(idx!=null && !ar.plots[idx].plant){ plantSeed(area, idx, id); }
+      closeModal(); renderArea(area); renderHeader();
+    });
+  });
+  if(idx!=null){
+    document.querySelectorAll('#seedModal .pot-option').forEach(opt=>{
+      opt.addEventListener('click', ()=>{ buyPot(area, idx, opt.getAttribute('data-pot')); });
+    });
+  }
+}
+
+/* ============================================================
+   RENDER — orders
+   ============================================================ */
+function renderOrders(){
+  document.getElementById('ordersH').innerHTML = ic('orders',24)+' Market';
+  const c = document.getElementById('ordersContent');
+  refillOrders();
+  if(!state.orders.length){
+    c.innerHTML = '<div class="empty-state"><h3>No orders yet</h3>Grow a few flowers and orders will appear here.</div>';
+    return;
+  }
+  let html = '';
+  state.orders.forEach((o,i)=>{
+    const p = PLANT_BY_ID[o.plant];
+    const prog = orderProgress(o);
+    const done = prog >= o.qty;
+    html += '<div class="order-card">'
+      + '<div class="order-top">'
+      + '<div class="order-art">'+getBloom(p)+'</div>'
+      + '<div class="order-info">'
+      + '<div class="order-title">'+o.qty+' × '+p.name+'</div>'
+      + '<div class="order-reward">reward <b>'+ic('coin',13)+fmt(o.reward)+'</b>'+(o.bonusWater?' · +'+o.bonusWater+' water':'')+'</div>'
+      + '</div></div>'
+      + '<div class="order-prog"><div class="order-bar"><div style="width:'+(prog/o.qty*100)+'%"></div></div>'
+      + '<div class="order-prog-label"><span>'+prog+' / '+o.qty+' harvested</span>'+(done?'<span style="color:var(--good)">ready</span>':'<span data-skip="'+i+'" style="color:var(--muted);text-decoration:underline">swap</span>')+'</div></div>'
+      + '<button class="order-claim" data-claim="'+i+'"'+(done?'':' disabled')+'>'+(done?'Deliver':'Keep growing')+'</button>'
+      + '</div>';
+  });
+  c.innerHTML = html;
+  c.querySelectorAll('[data-claim]').forEach(b=>b.addEventListener('click', ()=>claimOrder(+b.getAttribute('data-claim'))));
+  c.querySelectorAll('[data-skip]').forEach(b=>b.addEventListener('click', ()=>skipOrder(+b.getAttribute('data-skip'))));
+}
+
+/* ============================================================
+   RENDER — shop
+   ============================================================ */
+function renderShop(){
+  document.getElementById('shopH').innerHTML = ic('cart',24)+' Shop';
+  const c = document.getElementById('shopContent');
+  let html = '';
+
+  // greenhouse build
+  if(!state.greenhouse.built){
+    html += '<div class="card featured"><div class="card-icon">'+ic('greenhouse',46)+'</div>'
+      + '<div class="card-body"><div class="card-title">Greenhouse</div>'
+      + '<div class="card-meta">A whole second growing area, just for vegetables.</div></div>'
+      + '<button class="buy-btn" data-build="1"'+(state.coins<GREENHOUSE_COST?' disabled':'')+'>'+ic('coin',13)+fmt(GREENHOUSE_COST)+'</button></div>';
+  }
+
+  // fertiliser booster (if owned)
+  if(has('fertiliser')){
+    const active = state.fertiliserActiveUntil > Date.now();
+    html += '<div class="card"><div class="card-icon">'+ic('flask',46)+'</div>'
+      + '<div class="card-body"><div class="card-title">Fertiliser Booster</div>'
+      + '<div class="card-meta">'+(active?'<b>Active</b> — 2× growth right now':'2× growth speed for 2 minutes')+'</div></div>'
+      + '<button class="buy-btn'+(active?' owned':'')+'" data-fert="1"'+(active?' disabled':'')+'>'+(active?'On':'Use')+'</button></div>';
+  }
+
+  // helpers
+  html += '<div class="section-label">'+ic('robot',16)+' Helpers</div>';
+  FEATURES.forEach(f=>{
+    const owned = has(f.id);
+    const locked = (f.req && !has(f.req)) || (f.gh && !state.greenhouse.built);
+    if(owned){
+      html += '<div class="card"><div class="card-icon">'+ic(f.icon,46)+'</div>'
+        + '<div class="card-body"><div class="card-title">'+f.name+'</div><div class="card-meta">'+f.desc+'</div></div>'
+        + '<button class="buy-btn owned" disabled>'+ic('check',13)+'</button></div>';
+    } else {
+      const can = !locked && state.coins>=f.cost;
+      const note = f.gh && !state.greenhouse.built ? 'Needs greenhouse' : (f.req && !has(f.req) ? 'Needs '+FEATURES.find(x=>x.id===f.req).name : f.desc);
+      html += '<div class="card'+(locked?' locked':'')+'"><div class="card-icon">'+ic(f.icon,46)+'</div>'
+        + '<div class="card-body"><div class="card-title">'+f.name+'</div><div class="card-meta">'+note+'</div></div>'
+        + '<button class="buy-btn" data-feat="'+f.id+'"'+(can?'':' disabled')+'>'+ic('coin',13)+fmt(f.cost)+'</button></div>';
+    }
+  });
+
+  // upgrades
+  html += '<div class="section-label">'+ic('sparkle',16)+' Upgrades</div>';
+  UPGRADES.forEach(u=>{
+    const lvl = up(u.id), maxed = lvl>=u.max;
+    const cost = upgradeCost(u);
+    const can = !maxed && state.coins>=cost;
+    html += '<div class="card"><div class="card-icon">'+ic(u.icon,46)+'</div>'
+      + '<div class="card-body"><div class="card-title">'+u.name+' <small>Lv '+lvl+'/'+u.max+'</small></div>'
+      + '<div class="card-meta">'+u.desc+'</div></div>'
+      + (maxed? '<button class="buy-btn owned" disabled>Max</button>'
+          : '<button class="buy-btn" data-up="'+u.id+'"'+(can?'':' disabled')+'>'+ic('coin',13)+fmt(cost)+'</button>')
+      + '</div>';
+  });
+
+  // compost / prestige
+  if(state.totalEarned >= COMPOST_UNLOCK || state.composts>0){
+    const gain = compostGain();
+    html += '<div class="section-label">'+ic('compost',16)+' Compost</div>';
+    html += '<div class="card featured"><div class="card-icon">'+ic('compost',46)+'</div>'
+      + '<div class="card-body"><div class="card-title">Compost the Garden</div>'
+      + '<div class="card-meta">Reset beds, seeds &amp; upgrades for <b>+'+gain+' compost</b> (each = +5% coins forever). You keep '+fmt(state.compost)+' now (+'+(state.compost*5)+'%).</div></div>'
+      + '<button class="buy-btn" data-compost="1"'+(gain<1?' disabled':'')+'>'+ic('compost',13)+'+'+gain+'</button></div>';
+  }
+
+  c.innerHTML = html;
+  c.querySelectorAll('[data-build]').forEach(b=>b.addEventListener('click', buildGreenhouse));
+  c.querySelectorAll('[data-fert]').forEach(b=>b.addEventListener('click', useFertiliser));
+  c.querySelectorAll('[data-feat]').forEach(b=>b.addEventListener('click', ()=>buyFeature(b.getAttribute('data-feat'))));
+  c.querySelectorAll('[data-up]').forEach(b=>b.addEventListener('click', ()=>buyUpgrade(b.getAttribute('data-up'))));
+  c.querySelectorAll('[data-compost]').forEach(b=>b.addEventListener('click', confirmCompost));
+}
+
+/* ============================================================
+   RENDER — journal (stats / achievements / almanac)
+   ============================================================ */
+function renderJournal(){
+  document.getElementById('journalH').innerHTML = ic('book',24)+' Journal';
+  const c = document.getElementById('journalContent');
+  const unlockedAch = ACHIEVEMENTS.filter(a=>state.achievements[a.id]).length;
+  let html = '<div class="stats-grid">'
+    + statBox('Coins earned', fmt(state.totalEarned))
+    + statBox('Harvests', fmt(state.totalHarvested))
+    + statBox('Per second', fmt(estimateIncomePerSec())+' /s')
+    + statBox('Orders filled', fmt(state.ordersDone))
+    + statBox('Composts', fmt(state.composts))
+    + statBox('Butterflies', fmt(state.butterfliesCaught))
+    + '</div>';
+
+  // almanac flowers
+  html += '<div class="section-label">'+ic('flower',16)+' Flowers</div><div class="almanac-grid">';
+  FLOWERS.forEach(p=>{
+    const found = plantUnlocked(p);
+    html += '<div class="alm-cell '+(found?'found':'unfound')+'">'+(found?getBloom(p):getBloom(p))+(found?'<div class="alm-name">'+p.name+'</div>':'<div class="alm-name">'+fmt(p.unlock)+'</div>')+'</div>';
+  });
+  html += '</div>';
+  // almanac veg
+  html += '<div class="section-label">'+ic('veg',16)+' Vegetables</div><div class="almanac-grid">';
+  VEG.forEach(p=>{
+    const found = plantUnlocked(p);
+    html += '<div class="alm-cell '+(found?'found':'unfound')+'">'+getBloom(p)+(found?'<div class="alm-name">'+p.name+'</div>':'<div class="alm-name">'+fmt(p.unlock)+'</div>')+'</div>';
+  });
+  html += '</div>';
+
+  html += '<div class="section-label">'+ic('medal',16)+' Achievements '+unlockedAch+'/'+ACHIEVEMENTS.length+'</div>';
+  ACHIEVEMENTS.forEach(a=>{
+    const got = !!state.achievements[a.id];
+    html += '<div class="ach-row'+(got?' unlocked':'')+'"><div class="ach-icon">'+ic(got?a.icon:'lock',30)+'</div>'
+      + '<div><div class="ach-title">'+a.name+'</div><div class="ach-desc">'+a.desc+'</div></div></div>';
+  });
+  c.innerHTML = html;
+}
+function statBox(label, val){ return '<div class="stat-box"><div class="stat-label">'+label+'</div><div class="stat-val">'+val+'</div></div>'; }
+
+/* ============================================================
+   BUTTERFLIES
+   ============================================================ */
+function butterflySVG(color){
+  const c2 = color==='#ff4d8d'?'#8a5cff':'#ff4d8d';
+  return '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
+    + '<path class="wing" d="M12 12.4C9 6 2.6 6.4 3.6 11.6S11 16 12 12.4z" fill="'+color+'"/>'
+    + '<path class="wing" d="M12 12.4c3-6.4 9.4-6 8.4-.8S13 16 12 12.4z" fill="'+c2+'"/>'
+    + '<path d="M12 6.5v11" stroke="#36251c" stroke-width="1.7" stroke-linecap="round"/>'
+    + '<path d="M12 6.5L10 4M12 6.5L14 4" stroke="#36251c" stroke-width="1.2" stroke-linecap="round"/></svg>';
+}
+function spawnButterfly(){
+  if(currentTab !== 'garden') return;
+  const view = document.querySelector('#panel-garden .garden-view');
+  if(!view) return;
+  if(view.querySelectorAll('.butterfly').length >= 2) return;
+  const el = document.createElement('div');
+  el.className = 'butterfly';
+  el.innerHTML = butterflySVG(pick(['#ff4d8d','#8a5cff','#ffc83d']));
+  const w = view.clientWidth || 360, h = view.clientHeight || 500;
+  const y1 = 60 + Math.random()*(h*0.35), y2 = 60 + Math.random()*(h*0.35);
+  el.style.top = y1+'px'; el.style.left = '0px';
+  view.appendChild(el);
+  const anim = el.animate([
+    { transform: 'translate(-40px, 0px) rotate(-6deg)' },
+    { transform: 'translate('+(w*0.5)+'px, '+(y2-y1)+'px) rotate(6deg)' },
+    { transform: 'translate('+(w+40)+'px, '+(Math.random()*60-30)+'px) rotate(-6deg)' }
+  ], { duration: 11000, easing: 'ease-in-out' });
+  anim.onfinish = ()=>el.remove();
+  el.addEventListener('click', ()=>{
+    const reward = Math.max(50, Math.floor(estimateIncomePerSec()*60));
+    addCoins(reward); state.butterfliesCaught++;
+    const r = el.getBoundingClientRect();
+    floatPop({clientX:r.left+r.width/2, clientY:r.top+8}, '+'+fmt(reward), 'coin');
+    el.remove(); renderHeader(); checkAchievements();
+  });
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+const modalBg = document.getElementById('modalBg');
+const modalEl = document.getElementById('modal');
+function openModal(title, bodyHtml, actionsHtml, id){
+  modalEl.id = id || 'modal';
+  modalEl.innerHTML = '<button class="modal-close" id="modalCloseBtn">&times;</button>'
+    + '<div class="modal-title">'+title+'</div>'
+    + bodyHtml
+    + (actionsHtml? '<div class="modal-actions">'+actionsHtml+'</div>' : '');
+  modalBg.classList.add('active');
+  document.getElementById('modalCloseBtn').onclick = closeModal;
+}
+function closeModal(){ modalBg.classList.remove('active'); modalEl.id='modal'; }
+modalBg.addEventListener('click', e=>{ if(e.target===modalBg) closeModal(); });
+
+function openMenu(){
+  const body = '<div class="modal-sub">a cosy idle garden</div>'
+    + '<p style="font-weight:600;color:var(--ink)">How to play</p>'
+    + '<ul>'
+    + '<li>Tap a flower while growing to <b>water</b> it (speeds growth)</li>'
+    + '<li>Tap when it <b>blooms</b> (glowing) to gather coins</li>'
+    + '<li>Tap an empty bed to choose a seed &amp; upgrade its pot</li>'
+    + '<li>Build the <b>greenhouse</b> to grow vegetables too</li>'
+    + '<li>Fill <b>market orders</b> for big coin bonuses</li>'
+    + '<li>Catch <b>butterflies</b> drifting through the garden</li>'
+    + '<li>Buy helpers in the Shop so it all runs itself</li>'
+    + '<li>Late game: <b>compost</b> for a permanent coin boost</li>'
+    + '</ul>'
+    + '<p class="small">Progress saves automatically and keeps growing while you are away.</p>';
+  openModal('Idle Garden', body,
+    '<button id="menuReset" class="danger">Reset</button><button id="menuClose" class="primary">Close</button>');
+  document.getElementById('menuClose').onclick = closeModal;
+  document.getElementById('menuReset').onclick = confirmReset;
+}
+function confirmReset(){
+  openModal('Reset everything?',
+    '<p>This wipes your whole garden, greenhouse and all progress. There is no undo.</p>',
+    '<button id="resetNo">Cancel</button><button id="resetYes" class="danger">Reset</button>');
+  document.getElementById('resetNo').onclick = closeModal;
+  document.getElementById('resetYes').onclick = ()=>{
+    localStorage.removeItem(SAVE_KEY); state = createNewState(); state.seenWelcome = true;
+    closeModal(); renderAll(); switchTab('garden'); toast('Fresh start!', 'good');
+  };
+}
+function confirmCompost(){
+  const gain = compostGain();
+  openModal('Compost the garden?',
+    '<div class="modal-sub">circle of life</div>'
+    + '<p>You will <b>reset</b> all beds, seeds and upgrades, but gain <b>+'+gain+' compost</b>. Each compost adds <b>+5% coins forever</b>.</p>'
+    + '<p class="small">You will keep your achievements, almanac and lifetime stats.</p>',
+    '<button id="compNo">Not yet</button><button id="compYes" class="primary">Compost +'+gain+'</button>');
+  document.getElementById('compNo').onclick = closeModal;
+  document.getElementById('compYes').onclick = doCompost;
+}
+function showWelcome(){
+  openModal('Welcome to your garden',
+    '<div class="modal-sub">a tiny patch to call your own</div>'
+    + '<p style="font-family:\'Caveat\',cursive;font-size:19px;line-height:1.3;color:var(--ink-soft)">tap a soil bed to plant your first daisy. once it blooms and glows, tap to gather its coins.</p>'
+    + '<p class="small">From there the garden grows itself. Come back any time — even days later. Have fun!</p>',
+    '<button id="welcomeGo" class="primary">Start planting</button>');
+  document.getElementById('welcomeGo').onclick = ()=>{ state.seenWelcome=true; closeModal(); };
+}
+function showOffline(info){
+  let body = '<div class="modal-sub">you were away '+fmtTime(info.elapsed)+'</div>';
+  if(info.earned>0){
+    body += '<p>Your helpers gathered <b style="color:var(--gold)">'+fmt(info.earned)+' coins</b> from '+fmt(info.grown)+' harvests while you were gone.</p>';
+  } else {
+    body += '<p>Your flowers kept growing while you were away. Some may be ready to gather now.</p>';
+  }
+  openModal('Welcome back', body, '<button id="offlineGo" class="primary">Lovely</button>');
+  document.getElementById('offlineGo').onclick = closeModal;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+let currentTab = 'garden';
+const TABS = [
+  { id:'garden',     label:'Garden',     icon:'flower' },
+  { id:'greenhouse', label:'Greenhouse', icon:'greenhouse' },
+  { id:'orders',     label:'Market',     icon:'orders' },
+  { id:'shop',       label:'Shop',       icon:'cart' },
+  { id:'journal',    label:'Journal',    icon:'book' }
+];
+function buildTabs(){
+  const nav = document.getElementById('tabs');
+  nav.innerHTML = '';
+  TABS.forEach(t=>{
+    const b = document.createElement('button');
+    b.className = 'tab-btn' + (t.id===currentTab?' active':'');
+    b.innerHTML = ic(t.icon,22) + '<span>'+t.label+'</span>';
+    const readyOrders = t.id==='orders' ? state.orders.filter(o=>orderProgress(o)>=o.qty).length : 0;
+    if(readyOrders>0) b.innerHTML += '<span class="tab-badge">'+readyOrders+'</span>';
+    b.onclick = ()=>switchTab(t.id);
+    nav.appendChild(b);
+  });
+}
+function switchTab(name){
+  currentTab = name;
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('main').scrollTop = 0;
+  if(name==='garden') renderGarden();
+  else if(name==='greenhouse') renderGreenhouse();
+  else if(name==='orders') renderOrders();
+  else if(name==='shop') renderShop();
+  else if(name==='journal') renderJournal();
+  buildTabs();
+}
+
+/* ============================================================
+   RENDER ALL / LOOP / INIT
+   ============================================================ */
+function renderAll(){
+  renderHeader(); renderGarden(); renderGreenhouse();
+  renderOrders(); renderShop(); renderJournal(); buildTabs();
+}
+function refreshActive(){
+  if(currentTab==='garden') updateGrid(document.getElementById('gardenGrid'),'garden');
+  else if(currentTab==='greenhouse' && state.greenhouse.built && document.getElementById('greenhouseGrid')) updateGrid(document.getElementById('greenhouseGrid'),'greenhouse');
+}
+
+function init(){
+  document.getElementById('appTitle').innerHTML = ic('flower',22)+' Idle <em>Garden</em>';
+  document.getElementById('menuBtn').innerHTML = ic('menu',20);
+  document.getElementById('icCoin').innerHTML = ic('coin',22);
+  document.getElementById('icWater').innerHTML = ic('water',22);
+  document.getElementById('icCompost').innerHTML = ic('compost',22);
+  document.getElementById('menuBtn').onclick = openMenu;
+
+  const loaded = load();
+  if(!loaded){ state = createNewState(); }
+  let offlineInfo = null;
+  if(loaded){ offlineInfo = processOffline(); }
+  refillOrders();
+  renderAll();
+  switchTab('garden');
+
+  if(!state.seenWelcome){ showWelcome(); }
+  else if(offlineInfo){ showOffline(offlineInfo); }
+
+  checkAchievements();
+  save();
+
+  // loops
+  setInterval(()=>{ tick(); if(currentTab==='orders') renderOrders(); buildTabs(); }, 1000);
+  setInterval(()=>{ refreshActive(); renderHeader(); }, 250);
+  setInterval(()=>{ if(Math.random()<0.55) spawnButterfly(); }, 8500);
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) save(); });
+  window.addEventListener('beforeunload', save);
+}
+init();
+</script>
+</body>
+</html>
